@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Körber NA Pipeline — Product Cluster Map</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0a1628; color: #e0e6ed; overflow-x: hidden; }
+
+  .header {
+    text-align: center; padding: 32px 20px 16px;
+    background: linear-gradient(135deg, #0a1628 0%, #132744 100%);
+    border-bottom: 2px solid #1e3a5f;
+  }
+  .header h1 { font-size: 26px; color: #fff; letter-spacing: 1px; }
+  .header .subtitle { font-size: 13px; color: #7a9cc6; margin-top: 6px; }
+
+  .legend {
+    display: flex; justify-content: center; gap: 24px; padding: 14px 20px;
+    background: #0d1f38; border-bottom: 1px solid #1e3a5f; flex-wrap: wrap;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #8ea8c8; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+
+  .filters {
+    display: flex; justify-content: center; gap: 10px; padding: 14px 20px;
+    background: #0d1f38; border-bottom: 1px solid #1e3a5f; flex-wrap: wrap;
+  }
+  .filter-btn {
+    padding: 6px 16px; border-radius: 20px; border: 1px solid #2a4a6f;
+    background: transparent; color: #8ea8c8; font-size: 12px; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .filter-btn:hover { border-color: #4a8ad4; color: #b8d4f0; }
+  .filter-btn.active { background: #1a3a5f; border-color: #4a8ad4; color: #fff; }
+
+  .canvas { padding: 24px; display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; }
+
+  .list-section {
+    width: 100%; max-width: 1400px;
+  }
+  .list-header {
+    font-size: 16px; font-weight: 700; padding: 10px 18px; margin-bottom: 16px;
+    border-radius: 8px; letter-spacing: 0.5px;
+  }
+
+  .clusters { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; }
+
+  .cluster {
+    background: #111d30; border: 1px solid #1e3a5f; border-radius: 12px;
+    padding: 16px; min-width: 260px; flex: 1; max-width: 440px;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .cluster:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+
+  .cluster-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px;
+    color: #5a8ab8; margin-bottom: 10px; font-weight: 700;
+    padding-bottom: 6px; border-bottom: 1px solid #1a2e48;
+  }
+  .cluster-icon { margin-right: 6px; }
+
+  .company {
+    display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px;
+    border-radius: 8px; margin-bottom: 4px; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .company:hover { background: #162a45; }
+  .company.expanded { background: #162a45; }
+
+  .status-pip {
+    width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 4px;
+    border: 1.5px solid rgba(255,255,255,0.15);
+  }
+
+  .company-info { flex: 1; min-width: 0; }
+  .company-name { font-size: 13px; font-weight: 600; color: #d4e3f5; }
+  .company-tag {
+    display: inline-block; font-size: 9px; padding: 1px 6px; border-radius: 10px;
+    margin-left: 6px; font-weight: 600; vertical-align: middle;
+  }
+  .company-products { font-size: 11px; color: #7a9cc6; margin-top: 3px; line-height: 1.4; }
+
+  .detail-panel {
+    display: none; margin-top: 8px; padding: 10px 12px;
+    background: #0d1a2e; border-radius: 8px; border: 1px solid #1e3a5f;
+  }
+  .detail-panel.show { display: block; }
+  .detail-row { display: flex; gap: 8px; margin-bottom: 5px; font-size: 11px; }
+  .detail-label { color: #5a8ab8; font-weight: 600; min-width: 80px; flex-shrink: 0; }
+  .detail-value { color: #b0c8e0; line-height: 1.4; }
+
+  .stats-bar {
+    display: flex; justify-content: center; gap: 32px; padding: 16px;
+    background: #0d1f38; border-top: 1px solid #1e3a5f;
+    position: sticky; bottom: 0;
+  }
+  .stat { text-align: center; }
+  .stat-num { font-size: 22px; font-weight: 700; color: #4a9eff; }
+  .stat-label { font-size: 10px; color: #5a7a9a; text-transform: uppercase; letter-spacing: 1px; }
+
+  @media (max-width: 768px) {
+    .cluster { min-width: 100%; max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>KÖRBER NA ACQUISITION PIPELINE</h1>
+  <div class="subtitle">Product Cluster Map — LongList V3 · 52 Active Companies · March 2026</div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#27ae60"></div> Shortlist</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#2ecc71"></div> Promote</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#f39c12"></div> Backup</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#e67e22"></div> Validate</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3498db"></div> Reclassify</div>
+</div>
+
+<div class="filters">
+  <button class="filter-btn active" data-filter="all">All</button>
+  <button class="filter-btn" data-filter="list1">Robotics</button>
+  <button class="filter-btn" data-filter="list2">High-Density / GTP</button>
+  <button class="filter-btn" data-filter="list3">System Integrators</button>
+  <button class="filter-btn" data-filter="list4">Software / WES</button>
+  <button class="filter-btn" data-filter="shortlist">Shortlist Only</button>
+  <button class="filter-btn" data-filter="promote">Promoted Only</button>
+</div>
+
+<div class="canvas" id="canvas"></div>
+
+<div class="stats-bar">
+  <div class="stat"><div class="stat-num" id="stat-total">52</div><div class="stat-label">Active</div></div>
+  <div class="stat"><div class="stat-num" id="stat-shortlist">23</div><div class="stat-label">Shortlist</div></div>
+  <div class="stat"><div class="stat-num" id="stat-promote">13</div><div class="stat-label">Promoted</div></div>
+  <div class="stat"><div class="stat-num" id="stat-backup">8</div><div class="stat-label">Backup</div></div>
+  <div class="stat"><div class="stat-num" id="stat-validate">5</div><div class="stat-label">Validate</div></div>
+</div>
+
+<script>
+const DATA = {
+  "list1": {
+    label: "LIST 1: ROBOTICS",
+    color: "#1a4a7a",
+    border: "#2a6aaa",
+    clusters: [
+      {
+        id: "ai-picking",
+        label: "AI Picking & Sorting",
+        icon: "🤖",
+        companies: [
+          { name: "OSARO", status: "shortlist", fit: "4.55", tier: "B", cost: "$420M", products: "SortPick AI robotic picking software, vision-guided kitting", tech: "AI Vision, Deep Learning", ip: 5 },
+          { name: "Nomagic", status: "shortlist", fit: "4.45", tier: "B", cost: "$296M", products: "AI robotic picking station for e-commerce fulfillment & returns", tech: "AI Robotic Picking, Computer Vision", ip: 4 },
+          { name: "Ambi Robotics", status: "promote", fit: "4.75", tier: "B", cost: "$203M", products: "AmbiSort AI gantry sorting for parcel & e-commerce", tech: "AI Sorting, Machine Learning, Computer Vision", ip: 5 },
+          { name: "PlusOne Robotics", status: "promote", fit: "4.00", tier: "B", cost: "$261M", products: "Yonder supervised autonomy platform, EasyPick AI parcel handling", tech: "AI Vision, Supervised Autonomy", ip: 4 },
+        ]
+      },
+      {
+        id: "palletizing",
+        label: "Robotic Palletizing & Depalletizing",
+        icon: "📦",
+        companies: [
+          { name: "Friday Systems", status: "promote", fit: "4.75", tier: "B", cost: "$122M", products: "FRIDAY robotic mixed-case palletizer, SaaS cloud platform", tech: "AI Palletizing, SaaS, Dynamic Pallet Building", ip: 5 },
+          { name: "NuMove Robotics", status: "shortlist", fit: "4.30", tier: "B", cost: "$186M", products: "NuLogik controller, automated palletizing/depalletizing", tech: "Robotic Palletizing, AI Vision Inspection", ip: 4 },
+        ]
+      },
+      {
+        id: "motion-control",
+        label: "Robot Motion Planning & Control",
+        icon: "🧠",
+        companies: [
+          { name: "Jacobi Robotics", status: "shortlist", fit: "4.90", tier: "A", cost: "$73M", products: "Jacobi Studio AI motion planning & simulation platform", tech: "AI Motion Planning Software", ip: 5 },
+          { name: "Mujin", status: "promote", fit: "4.70", tier: "C", cost: "$1,182M", products: "MujinController universal robot controller, TakePickPlanner AI", tech: "Intelligent Robot Controllers, AI Perception", ip: 5 },
+        ]
+      },
+      {
+        id: "truck-unloading",
+        label: "Truck Unloading",
+        icon: "🚛",
+        companies: [
+          { name: "Pickle Robot", status: "shortlist", fit: "4.55", tier: "B", cost: "$283M", products: "Autonomous truck & container unloading robot, AI vision", tech: "Autonomous Unloading, AI Vision", ip: 5 },
+        ]
+      },
+      {
+        id: "forklift-amr",
+        label: "Forklift AMR / Material Transport",
+        icon: "🏗️",
+        companies: [
+          { name: "VisionNav", status: "promote", fit: "4.10", tier: "C", cost: "$800M", products: "VNP autonomous counterbalance forklifts, AI 3D perception", tech: "AI Vision Navigation, Autonomous Forklifts", ip: 4 },
+          { name: "Seegrid", status: "backup", fit: "3.70", tier: "B", cost: "$458M", products: "Palion AMR, Fleet Manager software, tow tractors", tech: "Vision-Guided AMR, Fleet Management", ip: 4 },
+          { name: "Third Wave", status: "backup", fit: "3.75", tier: "B", cost: "$195M", products: "Fleet Commander, autonomous high-reach forklifts", tech: "Shared Autonomy, Teleoperation", ip: 4 },
+        ]
+      },
+      {
+        id: "amr-sorting",
+        label: "AMR Sorting & GTP Robots",
+        icon: "🔄",
+        companies: [
+          { name: "Liftians", status: "backup", fit: "3.80", tier: "A", cost: "$36M", products: "AMR goods-to-person platform for picking & storage", tech: "AMR, Goods-to-Person Robotics", ip: 3 },
+          { name: "Tompkins Robotics", status: "backup", fit: "3.20", tier: "A", cost: "$34M", products: "t-Sort AMR-based sorting system", tech: "AMR, Robotic Sortation", ip: 3 },
+        ]
+      },
+      {
+        id: "modular-robotics",
+        label: "Modular Robotic Systems",
+        icon: "🔧",
+        companies: [
+          { name: "SIMPL Automation", status: "validate", fit: "2.70", tier: "A", cost: "$15M", products: "Modular robotic cells for rapid deployment", tech: "Modular Automation, Rapid Deployment", ip: 2 },
+        ]
+      }
+    ]
+  },
+  "list2": {
+    label: "LIST 2: HIGH-DENSITY STORAGE & GTP",
+    color: "#4a2a6a",
+    border: "#7a4aaa",
+    clusters: [
+      {
+        id: "cube-asrs",
+        label: "Cube / Lattice AS/RS",
+        icon: "🧊",
+        companies: [
+          { name: "Mytra", status: "shortlist", fit: "4.55", tier: "B", cost: "$148M", products: "3D lattice automated storage with AI robots for GTP", tech: "3D Lattice AS/RS, AI Robotics", ip: 5 },
+          { name: "cellgo.io", status: "promote", fit: "3.25", tier: "A", cost: "$37M", products: "Modular automated cube storage for small-part GTP", tech: "Modular Cube AS/RS, Small-Part Robotics", ip: 4 },
+          { name: "Urbx", status: "shortlist", fit: "4.50", tier: "B", cost: "$83M", products: "Vertical robotic retrieval for high-density urban fulfillment", tech: "High-Bay AS/RS, Vertical Storage", ip: 5 },
+        ]
+      },
+      {
+        id: "amr-gtp",
+        label: "AMR-Based Goods-to-Person",
+        icon: "📍",
+        companies: [
+          { name: "Brightpick Group", status: "shortlist", fit: "4.50", tier: "B", cost: "$148M", products: "Autopicker autonomous picking AMR", tech: "AMR, Goods-to-Person, AI Picking", ip: 5 },
+          { name: "Prime Robotics", status: "shortlist", fit: "4.15", tier: "A", cost: "$46M", products: "AMR-based storage & retrieval for order fulfillment", tech: "AMR, GTP Robotics, AS/RS", ip: 4 },
+          { name: "IntelliStore", status: "shortlist", fit: "4.30", tier: "A", cost: "$37M", products: "AI-driven robot storage & order-picking system", tech: "AI-Powered AS/RS, GTP", ip: 5 },
+        ]
+      },
+      {
+        id: "shuttle-multi",
+        label: "Shuttle / Multi-System Platforms",
+        icon: "🔀",
+        companies: [
+          { name: "Movu", status: "validate", fit: "4.00", tier: "B", cost: "$200M", products: "Atlas pallet shuttle, Escala bin shuttle, iFollow AMR, Eligo GTP", tech: "Shuttle AS/RS, AMR, Palletizing", ip: 4 },
+          { name: "Deus Robotics", status: "reclassify", fit: "2.95", tier: "A", cost: "$19M", products: "Sorting & warehouse AMR, conveyor-integrated systems", tech: "AMR, Sorting, Conveyor Integration", ip: 3 },
+        ]
+      }
+    ]
+  },
+  "list3": {
+    label: "LIST 3: SYSTEM INTEGRATORS",
+    color: "#1a5a3a",
+    border: "#2a8a5a",
+    clusters: [
+      {
+        id: "si-wes-software",
+        label: "SI with Proprietary WES/WCS Software",
+        icon: "💻",
+        companies: [
+          { name: "Vargo", status: "shortlist", fit: "5.00", tier: "B", cost: "$267M", products: "COFE WES, waveless processing, conveyor & sortation SI", tech: "WES Software, Systems Integration", ip: 5 },
+          { name: "Numina Group", status: "promote", fit: "4.95", tier: "B", cost: "$118M", products: "RDS WES/WCS, voice-directed workflows", tech: "WES Software, Warehouse Automation", ip: 5 },
+          { name: "Fidus Global", status: "promote", fit: "4.90", tier: "A", cost: "$70M", products: "Pontem WCS open-architecture, controls engineering", tech: "WCS Software, Controls Engineering", ip: 5 },
+          { name: "Conveyor Solutions", status: "promote", fit: "4.85", tier: "A", cost: "$32M", products: "Koz WCS/WES, custom sortation & conveyor systems", tech: "Conveyor & Sortation, WCS", ip: 4 },
+          { name: "Maveneer", status: "promote", fit: "4.85", tier: "B", cost: "$81M", products: "WxS software platform, supply chain engineering", tech: "Supply Chain Engineering, WxS Software", ip: 4 },
+          { name: "DMW&H Systems", status: "shortlist", fit: "4.45", tier: "B", cost: "$153M", products: "indaGO WCS, conveyor & sortation design", tech: "Conveyor & Sortation, WCS", ip: 4 },
+          { name: "Conveyco", status: "shortlist", fit: "4.65", tier: "B", cost: "$189M", products: "New Dawn / Horizon WES, AS/RS integration", tech: "WES, Conveyor & Sortation, AS/RS", ip: 4 },
+          { name: "DLN Integrated", status: "shortlist", fit: "4.35", tier: "A", cost: "$63M", products: "PRODirect WCS+WES, vendor-neutral controls", tech: "WCS/WES Software, Controls Design", ip: 4 },
+        ]
+      },
+      {
+        id: "si-gtp-robotics",
+        label: "SI with GTP / Robotics Focus",
+        icon: "🤝",
+        companies: [
+          { name: "BoxLogix", status: "promote", fit: "4.85", tier: "A", cost: "$39M", products: "Logix WCS, GTP automation, conveyor + robotics SI", tech: "GTP Automation, Systems Integration", ip: 4 },
+          { name: "Zion Solutions", status: "shortlist", fit: "4.55", tier: "B", cost: "$115M", products: "Full SI (software, conveyors, robotics), AMR/GTP advisory", tech: "Robotics, Software Integration, WCS/WES", ip: 4 },
+          { name: "BlueSkye Automation", status: "backup", fit: "3.95", tier: "A", cost: "$15M", products: "AMR deployment, GTP system integration", tech: "AMR Integration, GTP Systems", ip: 2 },
+        ]
+      },
+      {
+        id: "si-conveyor",
+        label: "Conveyor & Material Handling SI",
+        icon: "⚙️",
+        companies: [
+          { name: "Carter Intralogistics", status: "shortlist", fit: "4.55", tier: "B", cost: "$258M", products: "OEM MDR conveyor systems, warehouse integration", tech: "Conveyor, MDR Technology", ip: 4 },
+          { name: "Cisco Eagle", status: "promote", fit: "4.80", tier: "B", cost: "$131M", products: "Conveyor & storage systems, material handling consulting", tech: "Conveyor, Storage, Consulting", ip: 3 },
+          { name: "Conveyor Handling Co.", status: "promote", fit: "4.80", tier: "B", cost: "$215M", products: "Conveyor & sortation SI, racking, warehouse controls", tech: "Conveyor & Sortation, Racking", ip: 3 },
+          { name: "DC Integration", status: "shortlist", fit: "4.35", tier: "B", cost: "$197M", products: "Custom conveyor & sortation, carton erectors, DC SI", tech: "Conveyor, Sortation, Full DC Integration", ip: 3 },
+          { name: "Hoj Innovations", status: "backup", fit: "4.35", tier: "B", cost: "$80M", products: "Conveyor design, racking solutions, WarehouseOS WES", tech: "Conveyor, Racking, Automation", ip: 3 },
+          { name: "Silman Industries", status: "backup", fit: "4.30", tier: "B", cost: "$120M", products: "Material handling SI, conveyor, Unison WCS", tech: "Conveyor, Robotics, WCS", ip: 3 },
+        ]
+      },
+      {
+        id: "si-consulting",
+        label: "Engineering Consulting / Design SI",
+        icon: "📐",
+        companies: [
+          { name: "Gray Solutions", status: "backup", fit: "4.35", tier: "A", cost: "$37M", products: "DC design & commissioning, engineering consulting", tech: "Warehouse Automation, Consulting", ip: 2 },
+          { name: "Kasa Controls", status: "reclassify", fit: "3.40", tier: "A", cost: "$25M", products: "PLC/HMI controls, conveyor control systems", tech: "PLC/HMI Controls, Robotics Integration", ip: 2 },
+        ]
+      },
+      {
+        id: "si-validate",
+        label: "Pending Validation",
+        icon: "❓",
+        companies: [
+          { name: "Systems Automated", status: "validate", fit: "3.80", tier: "B", cost: "$175M", products: "Conveyor SI, controls engineering, WES/WCS integration", tech: "Controls, Conveyor, WES/WCS", ip: 3 },
+          { name: "Warehouse Automation", status: "validate", fit: "3.40", tier: "B", cost: "$100M", products: "Conveyor SI, WORKFLOW WCS, racking solutions", tech: "Conveyor, Racking, WCS", ip: 3 },
+          { name: "NPSG Global", status: "validate", fit: "3.20", tier: "B", cost: "$200M", products: "E-fulfillment SI, conveyor & sortation, DC commissioning", tech: "E-fulfillment Integration", ip: 2 },
+        ]
+      }
+    ]
+  },
+  "list4": {
+    label: "LIST 4: WES / SOFTWARE",
+    color: "#5a3a1a",
+    border: "#aa6a2a",
+    clusters: [
+      {
+        id: "wes-platform",
+        label: "WES / Warehouse Execution Platforms",
+        icon: "🖥️",
+        companies: [
+          { name: "GreyOrange", status: "shortlist", fit: "4.55", tier: "C", cost: "$2,026M", products: "GreyMatter AI fulfillment platform, Ranger AMR", tech: "AI Fulfillment Orchestration, WES/WCS, AMR", ip: 5 },
+          { name: "Logistiview", status: "shortlist", fit: "4.15", tier: "B", cost: "$87M", products: "Cloud WES/WMS with AR wearables & voice-directed work", tech: "Cloud WES, Augmented Reality, Voice", ip: 5 },
+          { name: "CognitOps", status: "shortlist", fit: "4.60", tier: "A", cost: "$42M", products: "ALIGN AI operations intelligence & workforce analytics", tech: "AI/ML Analytics, Operations Intelligence", ip: 5 },
+          { name: "Ascent Warehouse", status: "shortlist", fit: "4.10", tier: "A", cost: "$34M", products: "Cloud WMS, order management, fulfillment platform", tech: "Cloud WMS, Order Management", ip: 4 },
+          { name: "Top Hat Engineering", status: "shortlist", fit: "4.15", tier: "A", cost: "$44M", products: "ClarityWOS SaaS WMS/ERP orchestration, IoT analytics", tech: "SaaS WMS/WES, Orchestration, IoT", ip: 4 },
+        ]
+      },
+      {
+        id: "robotics-middleware",
+        label: "Robotics Orchestration / Middleware",
+        icon: "🔗",
+        companies: [
+          { name: "Roboteon", status: "promote", fit: "4.65", tier: "A", cost: "$46M", products: "AI robotics orchestration & WES for multi-vendor robot fleets", tech: "AI Robotics Orchestration, WES, Multi-Robot", ip: 5 },
+          { name: "SVT Robotics", status: "shortlist", fit: "4.30", tier: "B", cost: "$133M", products: "SOFTBOT cloud robotics integration middleware, API connectors", tech: "Cloud Robotics Platform, API Middleware", ip: 5 },
+        ]
+      }
+    ]
+  }
+};
+
+const STATUS_COLORS = {
+  shortlist: "#27ae60",
+  promote: "#2ecc71",
+  backup: "#f39c12",
+  validate: "#e67e22",
+  reclassify: "#3498db"
+};
+const STATUS_LABELS = {
+  shortlist: "✓ SHORTLIST",
+  promote: "↑ PROMOTE",
+  backup: "◉ BACKUP",
+  validate: "? VALIDATE",
+  reclassify: "⇄ RECLASSIFY"
+};
+
+function renderCanvas(filter) {
+  const canvas = document.getElementById("canvas");
+  canvas.innerHTML = "";
+
+  let counts = { total: 0, shortlist: 0, promote: 0, backup: 0, validate: 0 };
+
+  Object.entries(DATA).forEach(([listKey, list]) => {
+    if (filter !== "all" && filter !== listKey && filter !== "shortlist" && filter !== "promote") return;
+
+    const section = document.createElement("div");
+    section.className = "list-section";
+
+    const header = document.createElement("div");
+    header.className = "list-header";
+    header.style.background = list.color;
+    header.style.borderLeft = `4px solid ${list.border}`;
+    header.style.color = "#fff";
+    header.textContent = list.label;
+    section.appendChild(header);
+
+    const clustersDiv = document.createElement("div");
+    clustersDiv.className = "clusters";
+
+    let hasVisibleCompany = false;
+
+    list.clusters.forEach(cluster => {
+      let filteredCompanies = cluster.companies;
+      if (filter === "shortlist") filteredCompanies = cluster.companies.filter(c => c.status === "shortlist");
+      if (filter === "promote") filteredCompanies = cluster.companies.filter(c => c.status === "promote");
+      if (filteredCompanies.length === 0) return;
+
+      hasVisibleCompany = true;
+      const clusterDiv = document.createElement("div");
+      clusterDiv.className = "cluster";
+
+      const label = document.createElement("div");
+      label.className = "cluster-label";
+      label.innerHTML = `<span class="cluster-icon">${cluster.icon}</span> ${cluster.label}`;
+      clusterDiv.appendChild(label);
+
+      filteredCompanies.forEach(co => {
+        counts.total++;
+        if (co.status === "shortlist") counts.shortlist++;
+        if (co.status === "promote") counts.promote++;
+        if (co.status === "backup") counts.backup++;
+        if (co.status === "validate") counts.validate++;
+
+        const coDiv = document.createElement("div");
+        coDiv.className = "company";
+        coDiv.onclick = () => {
+          const panel = coDiv.querySelector(".detail-panel");
+          const isOpen = panel.classList.contains("show");
+          document.querySelectorAll(".detail-panel.show").forEach(p => p.classList.remove("show"));
+          document.querySelectorAll(".company.expanded").forEach(c => c.classList.remove("expanded"));
+          if (!isOpen) { panel.classList.add("show"); coDiv.classList.add("expanded"); }
+        };
+
+        const pip = document.createElement("div");
+        pip.className = "status-pip";
+        pip.style.background = STATUS_COLORS[co.status];
+
+        const info = document.createElement("div");
+        info.className = "company-info";
+
+        const nameEl = document.createElement("div");
+        nameEl.className = "company-name";
+        nameEl.textContent = co.name;
+
+        const tag = document.createElement("span");
+        tag.className = "company-tag";
+        tag.style.background = STATUS_COLORS[co.status] + "33";
+        tag.style.color = STATUS_COLORS[co.status];
+        tag.textContent = STATUS_LABELS[co.status];
+        nameEl.appendChild(tag);
+
+        const prodEl = document.createElement("div");
+        prodEl.className = "company-products";
+        prodEl.textContent = co.products;
+
+        const detail = document.createElement("div");
+        detail.className = "detail-panel";
+        detail.innerHTML = `
+          <div class="detail-row"><span class="detail-label">Fit Score</span><span class="detail-value">${co.fit}</span></div>
+          <div class="detail-row"><span class="detail-label">IP Score</span><span class="detail-value">${co.ip}/5</span></div>
+          <div class="detail-row"><span class="detail-label">Tier</span><span class="detail-value">${co.tier}</span></div>
+          <div class="detail-row"><span class="detail-label">Est. Cost</span><span class="detail-value">${co.cost}</span></div>
+          <div class="detail-row"><span class="detail-label">Tech Focus</span><span class="detail-value">${co.tech}</span></div>
+        `;
+
+        info.appendChild(nameEl);
+        info.appendChild(prodEl);
+        info.appendChild(detail);
+
+        coDiv.appendChild(pip);
+        coDiv.appendChild(info);
+        clusterDiv.appendChild(coDiv);
+      });
+
+      clustersDiv.appendChild(clusterDiv);
+    });
+
+    if (hasVisibleCompany) {
+      section.appendChild(clustersDiv);
+      canvas.appendChild(section);
+    }
+  });
+
+  document.getElementById("stat-total").textContent = counts.total;
+  document.getElementById("stat-shortlist").textContent = counts.shortlist;
+  document.getElementById("stat-promote").textContent = counts.promote;
+  document.getElementById("stat-backup").textContent = counts.backup;
+  document.getElementById("stat-validate").textContent = counts.validate;
+}
+
+document.querySelectorAll(".filter-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    renderCanvas(btn.dataset.filter);
+  });
+});
+
+renderCanvas("all");
+</script>
+</body>
+</html>
