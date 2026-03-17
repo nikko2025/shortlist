@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Körber NA — Anchor + Peripheral Acquisition Pairing Guide</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#090f1a;color:#d0dae8;min-height:100vh}
+
+/* ─── HEADER ─── */
+.hdr{text-align:center;padding:28px 20px 18px;background:linear-gradient(135deg,#0a1628,#132744);border-bottom:2px solid #1e3a5f}
+.hdr h1{font-size:22px;color:#fff;letter-spacing:1.2px}
+.hdr .sub{font-size:12px;color:#6a8eb8;margin-top:5px}
+.hdr .inst{font-size:12px;color:#4a7aaa;margin-top:10px;font-style:italic}
+
+/* ─── LAYOUT ─── */
+.wrap{display:flex;height:calc(100vh - 100px)}
+.sidebar{width:320px;min-width:320px;background:#0c1829;border-right:1px solid #1e3a5f;overflow-y:auto;padding:12px}
+.main{flex:1;overflow-y:auto;padding:28px 32px}
+
+/* ─── SIDEBAR ─── */
+.sb-label{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:#4a6a8a;margin:12px 0 8px;font-weight:700}
+.anchor-card{
+  padding:12px 14px;border-radius:10px;margin-bottom:6px;cursor:pointer;
+  border:1px solid transparent;transition:all .2s;position:relative;
+}
+.anchor-card:hover{background:#12243d;border-color:#1e3a5f}
+.anchor-card.active{background:#142a4a;border-color:#2a6adf}
+.anchor-card.active::after{content:'';position:absolute;right:-1px;top:50%;transform:translateY(-50%);
+  width:0;height:0;border:8px solid transparent;border-left-color:#2a6adf}
+.ac-name{font-size:14px;font-weight:700;color:#d4e3f5}
+.ac-meta{font-size:11px;color:#6a8eb8;margin-top:3px;display:flex;gap:12px}
+.ac-tag{display:inline-block;font-size:9px;padding:2px 7px;border-radius:10px;font-weight:600;margin-top:4px}
+.ac-sw{background:#1a4a2a;color:#4ade80}
+.ac-hw{background:#4a2a1a;color:#f0a060}
+.ac-both{background:#1a2a4a;color:#60a0f0}
+.ac-bar{height:3px;border-radius:2px;margin-top:6px;background:#1a2a40}
+.ac-bar-fill{height:100%;border-radius:2px}
+
+/* ─── MAIN PANEL ─── */
+.empty-state{text-align:center;padding:100px 40px;color:#3a5a7a}
+.empty-state .icon{font-size:48px;margin-bottom:16px}
+.empty-state p{font-size:14px;line-height:1.6}
+
+.anchor-hero{
+  background:linear-gradient(135deg,#0e1f38,#142a4a);border:1px solid #1e3a5f;
+  border-radius:14px;padding:24px 28px;margin-bottom:24px;
+}
+.ah-name{font-size:22px;font-weight:700;color:#fff}
+.ah-subtitle{font-size:12px;color:#5a8ab8;margin-top:2px}
+.ah-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-top:16px}
+.ah-stat{background:#0a1628;border-radius:8px;padding:10px 12px;text-align:center}
+.ah-stat-val{font-size:18px;font-weight:700;color:#4a9eff}
+.ah-stat-lbl{font-size:9px;color:#5a7a9a;text-transform:uppercase;letter-spacing:0.8px;margin-top:2px}
+.ah-cap{margin-top:16px;padding-top:14px;border-top:1px solid #1a2e48}
+.ah-cap-title{font-size:10px;color:#4a6a8a;text-transform:uppercase;letter-spacing:1.2px;font-weight:700;margin-bottom:8px}
+.ah-caps{display:flex;flex-wrap:wrap;gap:6px}
+.cap-pill{font-size:11px;padding:4px 10px;border-radius:12px;border:1px solid #1e3a5f;color:#8ab0d6}
+.cap-pill.has{background:#1a3a2a;border-color:#2a6a3a;color:#6ade80}
+.cap-pill.gap{background:#3a1a1a;border-color:#6a2a2a;color:#e06060}
+
+.section-label{
+  font-size:11px;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;
+  color:#5a8ab8;margin:24px 0 12px;display:flex;align-items:center;gap:8px;
+}
+.section-label::after{content:'';flex:1;height:1px;background:#1a2e48}
+
+.pair-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+
+.pair-card{
+  background:#111d30;border:1px solid #1e3a5f;border-radius:12px;padding:0;
+  overflow:hidden;transition:transform .2s,box-shadow .2s;
+}
+.pair-card:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.4)}
+.pair-card.primary{border-color:#2a6adf}
+.pair-card.alt{border-color:#1e3a5f;opacity:.85}
+.pair-card.alt:hover{opacity:1}
+
+.pc-header{padding:14px 16px 10px;display:flex;justify-content:space-between;align-items:flex-start}
+.pc-name{font-size:14px;font-weight:700;color:#d4e3f5}
+.pc-list{font-size:9px;color:#5a7a9a;margin-top:2px}
+.pc-badges{display:flex;gap:4px;flex-shrink:0}
+.badge{font-size:9px;padding:2px 8px;border-radius:10px;font-weight:600}
+.badge-primary{background:#1a3a6a;color:#4a9eff}
+.badge-alt{background:#2a2a1a;color:#c0a040}
+.badge-tier{background:#1a2a3a;color:#6a9ac0}
+
+.pc-rationale{padding:0 16px 12px;font-size:12px;color:#8ab0d6;line-height:1.5}
+.pc-synergy{font-weight:600;color:#4ade80;font-size:11px}
+
+.pc-stats{display:flex;gap:0;border-top:1px solid #1a2e48}
+.pc-stat{flex:1;text-align:center;padding:8px 4px;border-right:1px solid #1a2e48}
+.pc-stat:last-child{border-right:none}
+.pc-stat-val{font-size:13px;font-weight:700;color:#c0d4e8}
+.pc-stat-lbl{font-size:8px;color:#4a6a8a;text-transform:uppercase;letter-spacing:.5px}
+
+/* ─── ENRICHED PROFILE ─── */
+.profile-section{
+  background:#0e1a2e;border:1px solid #1a2e48;border-radius:12px;
+  padding:18px 22px;margin-bottom:16px;
+}
+.ps-title{font-size:11px;text-transform:uppercase;letter-spacing:1.2px;font-weight:700;color:#4a8ad4;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.ps-title::after{content:'';flex:1;height:1px;background:#1a2e48}
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.product-item{background:#111d30;border:1px solid #1a2e48;border-radius:8px;padding:10px 14px}
+.pi-name{font-size:13px;font-weight:700;color:#d4e3f5}
+.pi-desc{font-size:11px;color:#7a9cc6;margin-top:3px;line-height:1.4}
+.pi-type{font-size:9px;padding:2px 8px;border-radius:10px;display:inline-block;margin-top:4px;font-weight:600}
+.pi-type.sw{background:#1a3a2a;color:#4ade80}
+.pi-type.hw{background:#4a2a1a;color:#f0a060}
+.pi-type.svc{background:#2a2a4a;color:#a0a0f0}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:8px}
+.info-item{font-size:12px;padding:6px 10px;background:#111d30;border-radius:6px}
+.info-lbl{color:#5a8ab8;font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+.info-val{color:#c0d4e8;margin-top:2px}
+.customer-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.cust-chip{font-size:10px;padding:3px 9px;border-radius:10px;background:#1a2a3a;color:#8ab0d6;border:1px solid #1e3a5f}
+
+.combo-summary{
+  background:linear-gradient(135deg,#0e2040,#142a4a);border:1px solid #1e3a5f;
+  border-radius:12px;padding:18px 22px;margin-top:20px;
+}
+.cs-title{font-size:12px;font-weight:700;color:#4a9eff;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.cs-row{display:flex;justify-content:space-between;padding:5px 0;font-size:12px;border-bottom:1px solid #0a1628}
+.cs-row:last-child{border-bottom:none;font-weight:700;color:#fff;padding-top:10px}
+.cs-lbl{color:#6a8eb8}
+.cs-val{color:#c0d4e8;font-weight:600}
+
+@media(max-width:900px){
+  .wrap{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:auto;max-height:250px;border-right:none;border-bottom:1px solid #1e3a5f}
+  .pair-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <h1>ANCHOR + PERIPHERAL ACQUISITION PAIRING GUIDE</h1>
+  <div class="sub">Körber NA Pipeline · System Integrator Anchors · March 2026</div>
+  <div class="inst">Select an anchor SI on the left to see recommended peripheral acquisitions</div>
+</div>
+
+<div class="wrap">
+  <div class="sidebar" id="sidebar"></div>
+  <div class="main" id="main">
+    <div class="empty-state">
+      <div class="icon">🎯</div>
+      <p>Select a System Integrator anchor from the sidebar<br>to see recommended peripheral acquisitions.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const ANCHORS = [
+  {
+    id: "vargo",
+    name: "Vargo",
+    software: "COFE\u00AE WES",
+    cost: 267, tier: "B", ip: 5, fit: "5.00",
+    revenue: "$40.7M", employees: "~100", founded: "1971", hq: "Hilliard, OH",
+    ownership: "Employee-Owned ESOP (since 2022)",
+    keyCustomers: ["American Eagle Outfitters", "Gap Inc.", "DSW"],
+    productDetails: [
+      {name:"COFE\u00AE WES",desc:"Award-winning waveless fulfillment engine. Continuous pull-based order processing, labor allocation, equipment control. COFE 4 adds cloud deployment.",type:"sw"},
+      {name:"Fulfillment SI",desc:"Complete design-build: facility layout, automation selection, controls design, commissioning. Partners with TGW for hardware.",type:"svc"},
+      {name:"Omnichannel Solutions",desc:"Specialized retail omnichannel distribution with flexible labor management and rapid reconfiguration.",type:"svc"},
+    ],
+    softwareDetail: "COFE\u00AE WES: Modular, cloud+on-prem, integrates with any WMS/OMS/PLC. Real-time waveless order release and labor allocation. COFE 4 (current gen) with cloud-first architecture.",
+    hardwareDetail: "No proprietary hardware. Integrates 3rd-party conveyor, sortation, GTP (TGW partnership). Margin leakage on hardware pass-through.",
+    partnerships: "TGW (conveyor/GTP hardware)",
+    hasWES: true, hasWCS: true, hasHardware: false, hasRobotics: false, hasGTP: false,
+    hasAI: false, hasCloudPlatform: true, hasManufacturing: false,
+    strengths: ["COFE\u00AE waveless WES (IP score 5)", "ESOP employee-owned culture", "Retail omnichannel expertise", "Cloud-ready COFE 4 platform"],
+    gaps: ["No proprietary robotics", "No GTP/AS-RS hardware (TGW dependent)", "No AI/vision layer", "Customer concentration risk (Gap, AEO)", "No fleet management"],
+    peripherals: [
+      { cat: "Robotics — Picking/Sorting", pairings: [
+        { name: "Ambi Robotics", primary: true, cost: 203, tier: "B", ip: 5, fit: "4.75", list: "Robotics", synergy: "Vargo\u2019s COFE\u00AE WES uses waveless continuous-flow execution, meaning parcels need to be sorted in real time without batch interruptions. Ambi\u2019s AI gantry sorting (AmbiSort) is purpose-built for this: it uses deep-learning vision to identify, pick, and sort parcels at high speed with no wave dependency. Integrating AmbiSort directly into COFE\u2019s execution loop gives Vargo a proprietary robotic sorting capability it currently outsources, capturing hardware margin and eliminating the dependency on third-party sortation OEMs. Ambi\u2019s IP score of 5 reflects genuine AI differentiation that compounds Vargo\u2019s own IP-5 COFE platform.", products: "AmbiSort AI gantry sorting" },
+        { name: "OSARO", primary: false, cost: 420, tier: "B", ip: 5, fit: "4.55", list: "Robotics", synergy: "OSARO\u2019s SortPick AI vision system adds robotic intelligence at pick and sort stations along Vargo\u2019s conveyor backbone. Where COFE orchestrates order flow, OSARO handles the physical manipulation \u2014 identifying items via 3D vision, grasping with multi-modal grippers, and placing into totes or cartons. This is an alternative to Ambi for clients who need piece-level robotic picking rather than parcel-level sorting, particularly in retail each-pick fulfillment where Vargo\u2019s AEO and Gap customers operate.", products: "SortPick AI robotic picking" },
+        { name: "Nomagic", primary: false, cost: 258, tier: "B", ip: 4, fit: "4.45", list: "Robotics", synergy: "Nomagic\u2019s AI picking stations are designed for e-commerce returns processing and each-pick fulfillment \u2014 exactly the retail workflows Vargo serves for Gap, DSW, and AEO. Integrating Nomagic gives COFE-directed robotic pick stations that handle the high-SKU, variable-item challenge of omnichannel retail, complementing Vargo\u2019s labor management capabilities with autonomous picking where labor is hardest to retain.", products: "AI picking station for e-comm returns" },
+      ]},
+      { cat: "Robotics — Palletizing", pairings: [
+        { name: "Friday Systems", primary: true, cost: 122, tier: "B", ip: 5, fit: "4.75", list: "Robotics", synergy: "Friday\u2019s SaaS-based robotic palletizer addresses the last step in Vargo\u2019s fulfillment chain: after COFE sorts and allocates orders, outbound palletizing is still largely manual. Friday\u2019s mixed-case palletizing uses AI to compute optimal pallet build patterns in real time, and its SaaS model generates recurring revenue \u2014 a strategic complement to Vargo\u2019s project-based SI model. Both companies target mid-market fulfillment, making customer alignment strong.", products: "FRIDAY robotic mixed-case palletizer" },
+        { name: "NuMove Robotics", primary: false, cost: 171, tier: "B", ip: 3, fit: "4.30", list: "Robotics", synergy: "NuMove brings AI vision-guided palletizing and depalletizing to both ends of the DC workflow. Their NuLogik controller handles mixed-SKU pallet builds and deconstructions that COFE can orchestrate. This is an alternative to Friday for clients who also need inbound depalletizing automation, not just outbound, particularly in retail distribution where Vargo\u2019s customers receive high-volume inbound shipments.", products: "NuLogik controller, pallet/depallet" },
+      ]},
+      { cat: "GTP / Storage", pairings: [
+        { name: "Mytra", primary: true, cost: 548, tier: "C", ip: 5, fit: "4.55", list: "GTP", synergy: "Vargo currently depends on TGW for AS/RS and GTP hardware, creating margin leakage and dependency risk. Mytra\u2019s 3D lattice AS/RS is a next-generation storage system using AI-directed robots that navigate a three-dimensional grid to retrieve items. Pairing Mytra with COFE creates a fully proprietary inbound-to-pick automation stack: Mytra stores and retrieves, COFE orchestrates order fulfillment. This eliminates the TGW dependency and captures the high-margin hardware revenue that Vargo currently passes through.", products: "3D lattice AS/RS with AI robots" },
+        { name: "Brightpick Group", primary: false, cost: 148, tier: "B", ip: 5, fit: "4.50", list: "GTP", synergy: "Brightpick\u2019s Autopicker AMR autonomously navigates to storage locations, picks items, and delivers them to packing stations \u2014 all directed by a WES. With COFE managing waveless order release, Brightpick AMRs would execute the physical GTP picking that Vargo currently designs using partner hardware. This gives Vargo a Tier B alternative to Mytra\u2019s larger Tier C investment while still capturing the autonomous picking capability gap.", products: "Autopicker autonomous picking AMR" },
+        { name: "IntelliStore", primary: false, cost: 45, tier: "A", ip: 4, fit: "4.30", list: "GTP", synergy: "IntelliStore offers an AI-driven GTP AS/RS at a Tier A price point, making it an affordable entry into proprietary GTP for Vargo\u2019s mid-market clients who don\u2019t need Mytra\u2019s enterprise-scale 3D lattice. IntelliStore\u2019s AI-optimized storage and retrieval feeds directly into COFE\u2019s continuous-flow engine, and the combined Tier A+B price keeps the bundle accessible for Vargo\u2019s retail omnichannel customers.", products: "AI-driven GTP storage system" },
+      ]},
+      { cat: "Software", pairings: [
+        { name: "Roboteon", primary: true, cost: 46, tier: "A", ip: 5, fit: "4.65", list: "Software", synergy: "Vargo\u2019s COFE WES orchestrates fulfillment workflows, but as clients deploy multi-vendor robot fleets (AMRs, sorting robots, palletizers from different OEMs), COFE needs a robot fleet management layer it doesn\u2019t currently have. Roboteon\u2019s AI orchestration platform sits between COFE and the robots, managing heterogeneous fleets with vendor-neutral commands. This is the missing middleware that lets Vargo offer multi-robot environments without building fleet management from scratch \u2014 and Roboteon\u2019s IP score of 5 means it\u2019s genuinely differentiated IP, not a commodity connector.", products: "AI robotics orchestration WES" },
+        { name: "SVT Robotics", primary: false, cost: 133, tier: "B", ip: 5, fit: "4.30", list: "Software", synergy: "SVT\u2019s SOFTBOT platform provides pre-built API connectors between WES/WMS systems and automation hardware vendors. For Vargo, this means faster integration of new robot brands into COFE-managed environments without custom development for each vendor. It\u2019s an alternative to Roboteon that focuses more on integration speed (pre-built connectors) than fleet AI, useful for Vargo\u2019s project-based model where rapid deployment matters.", products: "SOFTBOT cloud integration middleware" },
+        { name: "CognitOps", primary: false, cost: 51, tier: "A", ip: 5, fit: "4.60", list: "Software", synergy: "CognitOps\u2019 ALIGN platform uses machine learning to predict throughput, labor needs, and operational bottlenecks from warehouse execution data. Layered on top of COFE\u2019s rich operational dataset, ALIGN would give Vargo\u2019s clients predictive analytics and workforce optimization that COFE alone doesn\u2019t provide. This adds a recurring SaaS analytics product to Vargo\u2019s portfolio and helps differentiate against larger integrators who bundle their own BI tools.", products: "ALIGN AI ops intelligence" },
+      ]},
+    ]
+  },
+  {
+    id: "numina",
+    name: "Numina Group",
+    software: "RDS WES/WCS",
+    cost: 118, tier: "B", ip: 5, fit: "4.95",
+    revenue: "$16.1M", employees: "30", founded: "1985", hq: "Woodridge, IL",
+    ownership: "Private",
+    keyCustomers: ["Rainbow Resource", "Neesvig\u2019s Frozen Foods", "Green Rabbit", "Sam\u2019s Beauty"],
+    productDetails: [
+      {name:"RDS WES",desc:"Real-time Distribution System. Linux-based, sub-millisecond latency, scales 100K+ orders/day. Waveless continuous flow. Cloud-ready (GCP, AWS).",type:"sw"},
+      {name:"RDS WCS",desc:"Real-time control layer for conveyor, sorter, AS/RS. Equipment synchronization and flow management.",type:"sw"},
+      {name:"RDS WMS",desc:"Full WMS to complement RDS ecosystem. Bolts onto any ERP without replacing existing systems.",type:"sw"},
+      {name:"Voice-Picking",desc:"Hands-free RDS Voice-Picking integration for order fulfillment.",type:"sw"},
+      {name:"Turnkey Integration",desc:"Brand-agnostic: pick modules, AMRs, AS/RS, conveyor, carousels, robotic palletizing.",type:"svc"},
+    ],
+    softwareDetail: "RDS platform: 64-bit Linux, sub-ms latency, cloud-ready. WES+WCS+WMS stack. 1,000+ successful implementations over 40 years. 30-70% labor cost reduction, 99.9% accuracy.",
+    hardwareDetail: "No proprietary hardware. Brand-agnostic integrator selecting best-in-class equipment for each application.",
+    partnerships: "Various equipment OEMs (brand-agnostic)",
+    hasWES: true, hasWCS: true, hasHardware: false, hasRobotics: false, hasGTP: false,
+    hasAI: false, hasCloudPlatform: true, hasManufacturing: false,
+    strengths: ["Full RDS software stack (WES+WCS+WMS)", "Sub-ms real-time latency", "1,000+ implementations over 40 years", "Voice-directed picking", "Cloud-ready architecture"],
+    gaps: ["No proprietary robotics", "No GTP/AS-RS hardware", "No AI/ML analytics layer", "Small team (30 people)", "Mid-market scale limits"],
+    peripherals: [
+      { cat: "Robotics — Picking/Sorting", pairings: [
+        { name: "PlusOne Robotics", primary: true, cost: 261, tier: "B", ip: 4, fit: "4.00", list: "Robotics", synergy: "Numina\u2019s strength is voice-directed picking and human-coordinated workflows through RDS. PlusOne\u2019s supervised autonomy model (Yonder platform) is uniquely complementary: robots handle routine parcel picks while human operators supervise and intervene for exceptions via remote teleoperation. This creates a human-robot hybrid workflow where RDS directs both voice-guided workers and PlusOne robots in the same facility, scaling throughput without fully displacing Numina\u2019s workforce-centric approach. PlusOne\u2019s parcel handling focus aligns with Numina\u2019s distribution center sweet spot.", products: "Yonder platform, EasyPick AI parcel" },
+        { name: "Ambi Robotics", primary: false, cost: 203, tier: "B", ip: 5, fit: "4.75", list: "Robotics", synergy: "Where Numina currently uses voice-directed human workers for sorting tasks, Ambi\u2019s AI gantry sorting can automate the highest-volume sort lanes. RDS would orchestrate the workflow split: voice-directed workers handle complex or exception items while AmbiSort handles high-throughput, repetitive parcel sorting. This hybrid approach leverages Numina\u2019s existing RDS workflow engine while adding autonomous sorting capacity, particularly valuable in tight labor markets where Numina\u2019s mid-market customers struggle to staff.", products: "AmbiSort AI gantry sorting" },
+      ]},
+      { cat: "Robotics — Palletizing", pairings: [
+        { name: "Friday Systems", primary: true, cost: 122, tier: "B", ip: 5, fit: "4.75", list: "Robotics", synergy: "Numina\u2019s RDS platform manages the full fulfillment-to-ship workflow, but outbound palletizing remains a manual bottleneck for their mid-market clients. Friday\u2019s SaaS robotic palletizer completes the automation chain from RDS-directed picking through to pallet build. Both companies serve the mid-market distribution segment, and Friday\u2019s recurring SaaS model adds subscription revenue to Numina\u2019s project-based business \u2014 a strategic revenue diversification.", products: "FRIDAY robotic palletizer, SaaS" },
+      ]},
+      { cat: "GTP / Storage", pairings: [
+        { name: "IntelliStore", primary: true, cost: 45, tier: "A", ip: 4, fit: "4.30", list: "GTP", synergy: "Numina\u2019s mid-market positioning (30-person team, sub-$20M revenue) pairs naturally with IntelliStore\u2019s affordable AI-driven GTP. RDS directs pick sequences and IntelliStore delivers the items \u2014 creating an end-to-end automated pick workflow at a price point Numina\u2019s customers can afford. Both are Tier A targets, keeping the combined acquisition cost manageable while filling Numina\u2019s hardware gap with proprietary GTP technology.", products: "AI-driven GTP storage system" },
+        { name: "Prime Robotics", primary: false, cost: 50, tier: "A", ip: 3, fit: "4.15", list: "GTP", synergy: "Prime Robotics\u2019 AMR-based goods-to-person system offers a mobile alternative to fixed AS/RS, which suits Numina\u2019s mid-market clients who need flexible, lower-capex GTP. RDS would orchestrate AMR pick missions alongside voice-directed workflows, giving Numina a blended automation approach. Both are Tier A companies, making this a cost-effective GTP capability addition.", products: "AMR-based storage & retrieval" },
+        { name: "cellgo.io", primary: false, cost: 37, tier: "A", ip: 4, fit: "3.25", list: "GTP", synergy: "cellgo\u2019s modular cube storage system is designed for small-part picking \u2014 the exact use case where Numina\u2019s voice-directed picking shines. Cube storage brings items to a pick station where RDS Voice-Picking guides the operator, or where robotic picking could eventually automate the step. The modular design lets Numina\u2019s clients start small and expand, matching the incremental automation approach that mid-market DCs prefer.", products: "Modular cube AS/RS for small parts" },
+      ]},
+      { cat: "Software", pairings: [
+        { name: "CognitOps", primary: true, cost: 51, tier: "A", ip: 5, fit: "4.60", list: "Software", synergy: "Numina\u2019s RDS platform generates rich real-time execution data across 1,000+ implementations, but lacks a predictive analytics layer. CognitOps\u2019 ALIGN AI platform would ingest RDS operational data to predict throughput, forecast labor requirements, and identify bottlenecks before they impact service levels. For Numina\u2019s clients \u2014 who rely on RDS for 30-70% labor cost reduction \u2014 adding predictive workforce optimization creates measurable additional ROI and a sticky SaaS upsell.", products: "ALIGN AI ops intelligence" },
+        { name: "Logistiview", primary: false, cost: 87, tier: "B", ip: 4, fit: "4.15", list: "Software", synergy: "Logistiview\u2019s AR wearables extend Numina\u2019s voice-directed model with visual overlay guidance \u2014 workers see pick locations, item images, and confirmation prompts through smart glasses while hearing RDS voice commands. This multi-modal approach reduces pick errors and training time beyond what voice-only achieves, particularly for complex multi-SKU environments. It\u2019s an alternative to CognitOps that adds value at the worker level rather than the analytics level.", products: "Cloud WES with AR wearables" },
+      ]},
+    ]
+  },
+  {
+    id: "boxlogix",
+    name: "BoxLogix",
+    software: "Logix WCS",
+    cost: 39, tier: "A", ip: 4, fit: "4.85",
+    revenue: "$8M", employees: "33", founded: "1980s", hq: "Prairie du Chien, WI",
+    ownership: "Private (rebuilt post-2013 Wynright acquisition of original SW group)",
+    keyCustomers: ["Retail Distributors", "DTC Companies", "Cold Storage Operators", "3PL Providers"],
+    productDetails: [
+      {name:"Logix WCS",desc:"Proprietary WCS connecting conveyors, shuttles, robotics, AS/RS. Real-time visibility and equipment synchronization. Built by former DC operators.",type:"sw"},
+      {name:"Custom-Engineered Solutions",desc:"Turnkey material handling automation. Inbound/outbound/picking/packing/parcel/storage solutions.",type:"svc"},
+      {name:"Spare Parts & Components",desc:"Air system parts, bearings, belting, conveyor controls, rollers.",type:"hw"},
+    ],
+    softwareDetail: "Logix WCS: Purpose-built by DC operators. Connects conveyors, shuttles, robotics, AS/RS into streamlined system. Direct equipment control with real-time visibility. No WES layer.",
+    hardwareDetail: "Conveyor system design + integration. Cold storage specialization. Spare parts inventory. Multi-industry application design.",
+    partnerships: "None noted (independent)",
+    hasWES: false, hasWCS: true, hasHardware: true, hasRobotics: false, hasGTP: true,
+    hasAI: false, hasCloudPlatform: false, hasManufacturing: false,
+    strengths: ["Logix WCS (proprietary, vendor-agnostic)", "Cold storage/DTC specialization (15-20% growth)", "40+ years experience", "3.3M sq ft DC ops managed by principals", "Tier A price ($39M)"],
+    gaps: ["No WES layer (orchestration gap)", "No AI/ML analytics", "No cloud platform", "Relatively new Logix platform post-2013 rebuild", "Small scale ($8M revenue)"],
+    peripherals: [
+      { cat: "Robotics — Picking", pairings: [
+        { name: "Nomagic", primary: true, cost: 258, tier: "B", ip: 4, fit: "4.45", list: "Robotics", synergy: "BoxLogix integrates GTP systems controlled by their Logix WCS, but the human pick step at GTP workstations remains manual. Nomagic\u2019s AI robotic picking station automates this exact step: it sits at the GTP workstation, uses vision AI to identify items presented by the AS/RS, and picks them into order totes. This transforms BoxLogix from a GTP integrator into a fully automated GTP-to-pick solution, dramatically increasing the value proposition for their cold storage and DTC clients.", products: "AI robotic picking station" },
+        { name: "OSARO", primary: false, cost: 420, tier: "B", ip: 5, fit: "4.55", list: "Robotics", synergy: "OSARO\u2019s SortPick AI vision system adds robotic intelligence at GTP pick faces \u2014 an alternative to Nomagic with stronger 3D vision capabilities for irregularly shaped items. For BoxLogix\u2019s cold storage specialization (where worker productivity drops in freezer environments), robotic picking at GTP stations addresses the exact labor challenge that makes cold storage automation so compelling.", products: "SortPick AI robotic picking" },
+      ]},
+      { cat: "GTP / Storage", pairings: [
+        { name: "Brightpick Group", primary: true, cost: 148, tier: "B", ip: 5, fit: "4.50", list: "GTP", synergy: "Brightpick\u2019s Autopicker does fully autonomous GTP picking: the AMR navigates to storage, picks the item, and delivers it directly to packing. This extends BoxLogix\u2019s GTP-first model from \u2018goods to person\u2019 to \u2018goods to ship\u2019 with no human in the loop. For BoxLogix\u2019s DTC and cold storage clients where labor is scarce and expensive, fully autonomous picking is a compelling differentiation against larger integrators.", products: "Autopicker autonomous picking AMR" },
+        { name: "Urbx", primary: false, cost: 26, tier: "A", ip: 3, fit: "4.50", list: "GTP", synergy: "Urbx\u2019s vertical robotic retrieval system maximizes storage density in small footprints \u2014 ideal for urban DCs and cold storage facilities where BoxLogix specializes. Both are Tier A targets, making this an affordable combination that gives BoxLogix proprietary high-density storage hardware to pair with Logix WCS, rather than integrating third-party AS/RS systems where they capture no hardware margin.", products: "Vertical robotic retrieval AS/RS" },
+      ]},
+      { cat: "Software — WES Gap Fill", pairings: [
+        { name: "Roboteon", primary: true, cost: 46, tier: "A", ip: 5, fit: "4.65", list: "Software", synergy: "BoxLogix\u2019s biggest gap is the absence of a WES orchestration layer above Logix WCS. Roboteon fills this precisely: its AI robotics orchestration platform manages multi-vendor robot fleets while providing the execution-level decision-making (order allocation, task sequencing, resource optimization) that WCS alone cannot do. Both Tier A targets \u2014 combined well under $100M \u2014 giving K\u00F6rber a low-cost, high-IP software+hardware SI platform with WCS+WES coverage.", products: "AI robotics orchestration WES" },
+        { name: "CognitOps", primary: false, cost: 51, tier: "A", ip: 5, fit: "4.60", list: "Software", synergy: "CognitOps\u2019 ALIGN platform adds the AI analytics and operational intelligence capabilities that Logix WCS doesn\u2019t provide. Where Logix controls equipment in real time, ALIGN predicts throughput requirements, forecasts labor needs, and identifies optimization opportunities. For BoxLogix\u2019s cold storage and DTC clients, predictive analytics directly addresses the operational variability that makes these verticals challenging.", products: "ALIGN AI ops intelligence" },
+        { name: "Ascent Warehouse", primary: false, cost: 21, tier: "A", ip: 3, fit: "4.10", list: "Software", synergy: "Ascent\u2019s cloud WMS provides the order management and inventory visibility layer that sits above Logix WCS. BoxLogix currently relies on clients\u2019 existing WMS systems, which creates integration friction. Owning a cloud WMS gives BoxLogix a complete software stack (WMS + WCS) that can be offered as a turnkey solution, reducing client IT dependencies and increasing per-project software revenue.", products: "Cloud WMS, order management" },
+      ]},
+    ]
+  },
+  {
+    id: "fidus",
+    name: "Fidus Global",
+    software: "Pontem WCS + Fulfilld WMS",
+    cost: 70, tier: "A", ip: 4, fit: "4.90",
+    revenue: "$16M", employees: "80", founded: "2020", hq: "Paragould, AR",
+    ownership: "Private (acquired Fulfilld Inc. Apr 2025)",
+    keyCustomers: ["Fortune 500 Retailer (13% throughput increase, $4.4M savings)", "National Retailers", "Collectibles Companies"],
+    productDetails: [
+      {name:"Pontem WCS",desc:"Open-architecture WCS using industry-standard PLC logic. 2025 MHI Best IT Innovation Award. Enables operator control without vendor lock-in.",type:"sw"},
+      {name:"Fulfilld WMS",desc:"AI-powered WMS with intelligent slotting (acquired Apr 2025). Reduces wasted labor 40%, improves accuracy 24%, enhances productivity 40%.",type:"sw"},
+      {name:"eSort Solution",desc:"Inbound operations optimization for collectibles and inventory management.",type:"sw"},
+      {name:"Controls & Integration",desc:"Custom PLC programming, legacy system modernization (replaces proprietary black-box Dematic/SSI software).",type:"svc"},
+      {name:"24/7 Maintenance & Support",desc:"Spare parts supply, preventative maintenance, emergency support.",type:"svc"},
+    ],
+    softwareDetail: "Pontem WCS: Open-architecture, PLC-based, eliminates vendor lock-in. Fulfilld WMS: AI-driven slotting and inventory. Building toward industry\u2019s first open Enterprise Control Platform (ECP). Targets legacy Dematic/SSI system modernization.",
+    hardwareDetail: "No proprietary hardware manufacturing. Controls engineering and PLC programming focused. Legacy system integration/replacement.",
+    partnerships: "Fulfilld (acquired), Various legacy system modernization clients",
+    hasWES: false, hasWCS: true, hasHardware: false, hasRobotics: false, hasGTP: false,
+    hasAI: true, hasCloudPlatform: false, hasManufacturing: false,
+    strengths: ["Pontem open-architecture WCS (MHI Award)", "Fulfilld AI WMS with intelligent slotting", "Legacy system modernization (Dematic/SSI replacement)", "Enterprise Control Platform vision", "Tier A price ($70M)"],
+    gaps: ["Only 5 years old (founded 2020)", "No WES orchestration layer", "No robotics or GTP hardware", "No conveyor/sortation hardware", "Open-architecture may invite price compression"],
+    peripherals: [
+      { cat: "Robotics — Motion & Picking", pairings: [
+        { name: "Jacobi Robotics", primary: true, cost: 73, tier: "A", ip: 5, fit: "4.90", list: "Robotics", synergy: "Fidus\u2019 Pontem WCS is built on open-architecture principles \u2014 standard PLC logic, no vendor lock-in. Jacobi\u2019s AI motion planning platform shares this philosophy: it programs any robot arm brand through a universal AI layer, eliminating the need for vendor-specific robot programming. Together, they create a controls-to-motion stack where Pontem handles equipment orchestration and Jacobi handles robot programming, both vendor-neutral. This is a strong architectural fit and Jacobi\u2019s IP score of 5 with Tier A pricing makes it an efficient acquisition.", products: "Jacobi Studio AI motion planning" },
+        { name: "Ambi Robotics", primary: false, cost: 203, tier: "B", ip: 5, fit: "4.75", list: "Robotics", synergy: "Ambi\u2019s AI sorting robots would be controlled through Pontem\u2019s vendor-neutral architecture, demonstrating the open-platform value proposition: clients get Fidus-controlled AmbiSort stations without proprietary lock-in. For Fidus\u2019 legacy system modernization clients (replacing Dematic/SSI), adding robotic sorting as part of the platform upgrade makes the modernization business case even stronger \u2014 they\u2019re not just replacing the old WCS, they\u2019re adding new robotic capabilities.", products: "AmbiSort AI gantry sorting" },
+      ]},
+      { cat: "GTP / Storage", pairings: [
+        { name: "IntelliStore", primary: true, cost: 45, tier: "A", ip: 4, fit: "4.30", list: "GTP", synergy: "IntelliStore\u2019s AI-driven GTP system, orchestrated by Pontem WCS, gives Fidus a hardware product to pair with its software platform. Both companies share an open-architecture philosophy and both are Tier A targets. For Fidus\u2019 Enterprise Control Platform vision \u2014 building an open alternative to proprietary Dematic/SSI stacks \u2014 owning an open GTP hardware system is a natural extension. The combined Tier A price point keeps the bundle accessible for Fidus\u2019 mid-market modernization clients.", products: "AI-driven GTP storage system" },
+        { name: "cellgo.io", primary: false, cost: 37, tier: "A", ip: 4, fit: "3.25", list: "GTP", synergy: "cellgo\u2019s modular cube storage pairs with Pontem\u2019s open WCS for configurable small-part GTP. The modularity matches Fidus\u2019 approach of replacing rigid legacy systems with flexible alternatives. For collectibles and inventory management use cases (where Fidus has the eSort solution), cube storage provides dense, configurable small-item storage that Pontem can orchestrate through standard PLC integration.", products: "Modular cube AS/RS" },
+      ]},
+      { cat: "Software — WES + Orchestration", pairings: [
+        { name: "Roboteon", primary: true, cost: 46, tier: "A", ip: 5, fit: "4.65", list: "Software", synergy: "Fidus has Pontem WCS and Fulfilld WMS but no WES orchestration layer between them. Roboteon fills this gap precisely: its AI platform manages robot fleets and provides execution-level decision-making. Pontem controls the equipment, Fulfilld manages inventory, and Roboteon orchestrates the robots \u2014 completing the software stack. This three-layer architecture (WMS/WES/WCS) positions Fidus\u2019 Enterprise Control Platform as a full-stack alternative to proprietary incumbent systems.", products: "AI robotics orchestration WES" },
+        { name: "SVT Robotics", primary: false, cost: 133, tier: "B", ip: 5, fit: "4.30", list: "Software", synergy: "SVT\u2019s SOFTBOT middleware extends Pontem\u2019s open-architecture philosophy to the API integration layer. Pre-built connectors to 100+ automation vendors mean Fidus can rapidly integrate any hardware into Pontem-controlled environments without custom development. For the legacy modernization business, this dramatically reduces integration timelines when replacing old Dematic/SSI systems with multi-vendor modern stacks.", products: "SOFTBOT cloud middleware" },
+      ]},
+    ]
+  },
+  {
+    id: "conveyor-solutions",
+    name: "Conveyor Solutions",
+    software: "Koz WCS/WES",
+    cost: 32, tier: "A", ip: 4, fit: "4.85",
+    revenue: "$7.8M", employees: "66", founded: "1986", hq: "Elgin, IL",
+    ownership: "Part of Systems In Motion (5-way merger: Conveyor Solutions + KVK + Electrical Services Group + SIM Aftermarket + SIM Software)",
+    keyCustomers: ["Various across multiple industries"],
+    productDetails: [
+      {name:"Koz WCS/WES",desc:"Proprietary WCS/WES with analytics, cloud monitoring, and customer portal.",type:"sw"},
+      {name:"Conveyor Systems",desc:"Full range: belt, roller, chain, screw conveyors in various configurations.",type:"hw"},
+      {name:"Automated Warehouse Solutions",desc:"Integrated AS/RS, GTP, AMRs, collaborative robots, sortation, carousels.",type:"svc"},
+      {name:"Control System Solutions",desc:"PLC programming and equipment controls for conveyor and automation.",type:"svc"},
+    ],
+    softwareDetail: "Koz WCS/WES: Proprietary platform with analytics dashboard, cloud monitoring portal, and customer-facing portal. Integrated controls from 5-way merger consolidation.",
+    hardwareDetail: "Full conveyor range (belt, roller, chain, screw). Sortation systems. Part of consolidated Systems In Motion entity with mechanical, electrical, software, and aftermarket capabilities.",
+    partnerships: "Systems In Motion consolidation entities",
+    hasWES: true, hasWCS: true, hasHardware: true, hasRobotics: false, hasGTP: false,
+    hasAI: false, hasCloudPlatform: true, hasManufacturing: true,
+    strengths: ["Koz WCS/WES with cloud monitoring", "Full conveyor range (belt/roller/chain/screw)", "5-way merger breadth", "Lowest-cost SI anchor ($32M)", "Sortation expertise"],
+    gaps: ["No robotics", "No GTP/AS-RS (integrates only)", "No AI/ML layer", "5-way merger integration risk", "Regional Midwest scale", "Conveyor is commoditized segment"],
+    peripherals: [
+      { cat: "Robotics", pairings: [
+        { name: "Ambi Robotics", primary: true, cost: 203, tier: "B", ip: 5, fit: "4.75", list: "Robotics", synergy: "Conveyor Solutions designs sortation lines controlled by Koz WCS/WES. Ambi\u2019s AI gantry sorting (AmbiSort) sits at the terminal point of these sortation lines, automating the final sort-to-destination step with AI vision. This gives Koz direct control over robotic sorting stations through its existing WCS, creating an integrated conveyor-to-sort automation product. As part of the Systems In Motion 5-way merger, adding robotic sorting differentiates the consolidated entity beyond commodity conveyor.", products: "AmbiSort AI gantry sorting" },
+        { name: "Pickle Robot", primary: false, cost: 245, tier: "B", ip: 4, fit: "4.55", list: "Robotics", synergy: "Pickle\u2019s autonomous truck unloading robot addresses the first step in the DC workflow: getting product off the truck and onto the conveyor. For Conveyor Solutions, this means their conveyor-to-sortation systems can start at the dock door rather than at a manual unloading station. The dock-to-sort automation chain eliminates the highest-injury, hardest-to-staff position in the DC, which is a compelling value proposition for the mid-market clients Conveyor Solutions serves.", products: "Autonomous truck unloading robot" },
+      ]},
+      { cat: "GTP / Storage", pairings: [
+        { name: "Prime Robotics", primary: true, cost: 50, tier: "A", ip: 3, fit: "4.15", list: "GTP", synergy: "Prime Robotics\u2019 AMR-based GTP system feeds items to Koz-controlled conveyor for outbound sortation, creating an automated storage-to-ship workflow. Both are Tier A targets with modest revenue, making this an affordable combination that gives Conveyor Solutions a storage and retrieval product to offer alongside its core conveyor systems \u2014 expanding the addressable scope from \u2018just conveyor\u2019 to \u2018storage through ship.\u2019", products: "AMR-based storage & retrieval" },
+        { name: "Urbx", primary: false, cost: 26, tier: "A", ip: 3, fit: "4.50", list: "GTP", synergy: "Urbx\u2019s vertical robotic retrieval system maximizes storage density in a small footprint, with items retrieved vertically and placed onto Koz-controlled sortation conveyor for outbound processing. This creates a complete high-density fulfillment system: vertical storage + sortation conveyor + Koz controls. Both Tier A targets with combined modest investment, providing the Systems In Motion consolidation with a proprietary hardware differentiator.", products: "Vertical robotic retrieval" },
+      ]},
+      { cat: "Software", pairings: [
+        { name: "CognitOps", primary: true, cost: 51, tier: "A", ip: 5, fit: "4.60", list: "Software", synergy: "Koz WCS/WES includes cloud monitoring and a customer portal, but lacks predictive analytics and AI-driven operations optimization. CognitOps\u2019 ALIGN platform adds this layer: predicting throughput, forecasting maintenance needs, and optimizing conveyor system performance from real-time Koz data. This transforms Conveyor Solutions\u2019 cloud monitoring from reactive dashboards to proactive, AI-driven operations management \u2014 a meaningful differentiation in the commodity conveyor market.", products: "ALIGN AI ops intelligence" },
+        { name: "Roboteon", primary: false, cost: 46, tier: "A", ip: 5, fit: "4.65", list: "Software", synergy: "Roboteon extends Koz into multi-robot environments by adding fleet orchestration for AMRs, sorting robots, and palletizers that clients deploy alongside Koz-controlled conveyors. As Conveyor Solutions\u2019 clients increasingly add robots to their facilities, Koz needs the ability to coordinate those robots alongside conveyor flows \u2014 Roboteon provides this without requiring Conveyor Solutions to build robot management capabilities from scratch.", products: "AI robotics orchestration WES" },
+      ]},
+    ]
+  },
+  {
+    id: "maveneer",
+    name: "Maveneer",
+    software: "WxS Platform",
+    cost: 81, tier: "B", ip: 4, fit: "4.85",
+    revenue: "$13.9M", employees: "36", founded: "~2018", hq: "Dallas, TX",
+    ownership: "Private (founder-led, Chad Hallerman CEO)",
+    keyCustomers: ["Pharmaceutical Companies", "Retail Companies", "E-Commerce Companies"],
+    productDetails: [
+      {name:"WxS Platform",desc:"Proprietary trademarked platform covering WES+WCS+labor management+inventory. Scope needs diligence verification.",type:"sw"},
+      {name:"Digital Twin Simulation",desc:"Virtual warehouse models for testing, optimizing layouts, and validating designs before build.",type:"sw"},
+      {name:"Warehouse Design Services",desc:"Conceptual design, detailed engineering, implementation planning.",type:"svc"},
+      {name:"Operational Assessment",desc:"Detailed assessment and recommendations for existing operations.",type:"svc"},
+      {name:"Systems Integration",desc:"Turnkey integration of ERP, WMS, automation, conveyor, GTP, robotics.",type:"svc"},
+    ],
+    softwareDetail: "WxS: Proprietary trademarked platform (per NP notes) covering WES+WCS+labor+inventory. Diligence report emphasizes consulting/design services over software. Digital twin simulation for pre-build validation. Note: Software depth needs further verification.",
+    hardwareDetail: "No hardware manufacturing. Pure design, consulting, and integration services. Partners with equipment OEMs.",
+    partnerships: "Various equipment and automation vendors",
+    hasWES: true, hasWCS: true, hasHardware: false, hasRobotics: false, hasGTP: false,
+    hasAI: false, hasCloudPlatform: false, hasManufacturing: false,
+    strengths: ["WxS software platform (WES+WCS+labor+inventory)", "Inc. 5000 hypergrowth", "Digital twin simulation", "Multi-disciplinary engineering team", "Pharma/retail/e-commerce verticals"],
+    gaps: ["Consulting-heavy model (services revenue)", "No robotics or hardware", "No GTP/AS-RS", "Key person risk (founder-led)", "Software depth needs verification", "Small team (36 people)"],
+    peripherals: [
+      { cat: "Robotics", pairings: [
+        { name: "Friday Systems", primary: true, cost: 122, tier: "B", ip: 5, fit: "4.75", list: "Robotics", synergy: "Maveneer\u2019s WxS platform includes labor management and inventory modules that track workforce allocation across fulfillment operations. Friday\u2019s SaaS robotic palletizer automates the most labor-intensive step in outbound operations \u2014 the exact step WxS identifies as the highest labor cost. By owning both the software that measures labor waste and the robot that eliminates it, Maveneer can quantify ROI precisely: WxS shows the labor cost, Friday removes it. Friday\u2019s SaaS recurring revenue also balances Maveneer\u2019s consulting-heavy project model.", products: "FRIDAY robotic palletizer, SaaS" },
+        { name: "Nomagic", primary: false, cost: 258, tier: "B", ip: 4, fit: "4.45", list: "Robotics", synergy: "Maveneer\u2019s WxS labor management module tracks manual picking productivity. Nomagic\u2019s AI picking station replaces that manual labor entirely for e-commerce returns and each-pick fulfillment \u2014 Maveneer\u2019s core pharma/retail/e-commerce verticals. This is an alternative to Friday that addresses the pick step rather than the palletize step, useful for clients where picking (not palletizing) is the labor bottleneck.", products: "AI picking station" },
+      ]},
+      { cat: "GTP / Storage", pairings: [
+        { name: "Brightpick Group", primary: true, cost: 148, tier: "B", ip: 5, fit: "4.50", list: "GTP", synergy: "Maveneer designs warehouse layouts and then manages labor through WxS. Brightpick\u2019s autonomous GTP picking replaces the manual labor WxS currently tracks and allocates. For Maveneer\u2019s consulting engagements, proposing a Brightpick GTP system with WxS orchestration creates a higher-value, outcome-based sale (automated fulfillment center design) versus the current model of designing layouts for manual or third-party automated systems where Maveneer captures no hardware margin.", products: "Autopicker autonomous picking AMR" },
+        { name: "Mytra", primary: false, cost: 548, tier: "C", ip: 5, fit: "4.55", list: "GTP", synergy: "Mytra\u2019s 3D lattice AS/RS is an enterprise-grade storage system for Maveneer\u2019s larger clients. WxS manages inventory allocation and Mytra handles physical storage and retrieval \u2014 creating a complete storage-to-fulfillment solution. Maveneer\u2019s digital twin simulation capability is particularly valuable here: they can model the Mytra system in virtual environments before deployment, reducing implementation risk for these large capital investments.", products: "3D lattice AS/RS" },
+      ]},
+      { cat: "Software", pairings: [
+        { name: "Logistiview", primary: true, cost: 87, tier: "B", ip: 4, fit: "4.15", list: "Software", synergy: "Logistiview\u2019s AR wearables and cloud WES add a visual, worker-facing interface to Maveneer\u2019s WxS labor management. Workers receive pick instructions through smart glasses (visual + audio) coordinated by WxS\u2019s labor allocation engine. This multi-modal approach extends WxS\u2019s labor management from backend optimization to frontline worker guidance, creating a differentiated consulting offering where Maveneer designs the workflow and Logistiview delivers it to the worker.", products: "Cloud WES with AR wearables" },
+        { name: "CognitOps", primary: false, cost: 51, tier: "A", ip: 5, fit: "4.60", list: "Software", synergy: "CognitOps\u2019 ALIGN AI platform adds predictive analytics to WxS execution data. For Maveneer\u2019s consulting practice, this transforms assessments from retrospective analysis to forward-looking optimization: predict throughput before design changes, forecast labor needs before peak seasons, identify bottlenecks before they impact service. This makes the consulting engagement more valuable and creates a recurring SaaS relationship beyond the project.", products: "ALIGN AI ops intelligence" },
+      ]},
+    ]
+  },
+  {
+    id: "carter",
+    name: "Carter Intralogistics",
+    software: "None (OEM hardware focus)",
+    cost: 258, tier: "B", ip: 4, fit: "4.55",
+    revenue: "$75M", employees: "201", founded: "1980", hq: "Savannah, GA",
+    ownership: "Owned by Lummus Corporation (acquired 2018 from Tulcan PE)",
+    keyCustomers: ["US Postal Service (Tier-1 provider)", "E-commerce/Parcel Cos.", "Retail Distributors", "Pharmaceutical Cos."],
+    productDetails: [
+      {name:"CarterRoll\u2122",desc:"Standard MDR conveyor in various widths/lengths. 24VDC motorized rollers. Floor or overhead mounting.",type:"hw"},
+      {name:"CarterMobile\u2122",desc:"Mobile MDR conveyor on casters. 24VDC. Quick reconfiguration capability.",type:"hw"},
+      {name:"CarterFlex\u2122",desc:"Flexible, expandable mobile MDR conveyor. Twists, bends, stretches. Adjustable roller center distance.",type:"hw"},
+      {name:"CarterPallet\u2122",desc:"MDR pallet conveyor in various sizes. 24VDC motorized technology for heavy loads.",type:"hw"},
+      {name:"Turnkey SI",desc:"Complete design-build conveyor automation from concept through installation. PLC programming.",type:"svc"},
+    ],
+    softwareDetail: "No proprietary WES/WCS platform. Software controls and PLC programming for conveyor systems only. Integration focus, not software-led.",
+    hardwareDetail: "Proprietary MDR conveyor technology (CarterRoll, CarterMobile, CarterFlex, CarterPallet). US manufacturing facility in Savannah, GA (acquired Jan 2022). 24VDC energy-efficient technology. 40+ years USPS Tier-1 provider.",
+    partnerships: "Lummus Corporation (parent), USPS (long-term contract)",
+    hasWES: false, hasWCS: false, hasHardware: true, hasRobotics: false, hasGTP: false,
+    hasAI: false, hasCloudPlatform: false, hasManufacturing: true,
+    strengths: ["Proprietary MDR conveyor tech (4 product lines)", "US manufacturing in Savannah GA", "40+ year USPS Tier-1 provider", "201 employees / $75M revenue", "24VDC energy efficiency"],
+    gaps: ["No WES/WCS software at all", "No robotics", "No GTP/AS-RS", "No AI/analytics", "Parent company (Lummus) dependency", "Conveyor-only \u2014 no software value"],
+    peripherals: [
+      { cat: "Software — Critical Gap Fill", pairings: [
+        { name: "Roboteon", primary: true, cost: 46, tier: "A", ip: 5, fit: "4.65", list: "Software", synergy: "Carter has four proprietary MDR conveyor product lines and US manufacturing, but zero software IP. This is the most critical gap to fill. Roboteon\u2019s AI robotics orchestration WES gives Carter a software brain for its conveyor hardware body \u2014 managing robot fleets that operate alongside Carter\u2019s MDR systems while providing the execution-level intelligence (task allocation, flow optimization, resource scheduling) that MDR conveyor alone cannot deliver. Roboteon\u2019s IP score of 5 instantly transforms Carter from a hardware-only company into a software+hardware platform.", products: "AI robotics orchestration WES" },
+        { name: "CognitOps", primary: false, cost: 51, tier: "A", ip: 5, fit: "4.60", list: "Software", synergy: "CognitOps adds AI analytics to Carter\u2019s large installed base of MDR conveyor systems. For Carter\u2019s USPS Tier-1 relationship (40+ years, high-volume parcel handling), predictive maintenance and throughput optimization analytics directly address USPS\u2019s operational efficiency needs. ALIGN\u2019s workforce optimization also helps Carter\u2019s clients optimize the labor that operates alongside MDR conveyor systems \u2014 creating a data-driven maintenance and operations upsell for Carter\u2019s existing install base.", products: "ALIGN AI ops intelligence" },
+        { name: "SVT Robotics", primary: false, cost: 133, tier: "B", ip: 5, fit: "4.30", list: "Software", synergy: "SVT\u2019s SOFTBOT middleware connects Carter\u2019s MDR conveyor systems to any robot or WMS via pre-built API connectors. Carter\u2019s clients increasingly need to integrate robots alongside conveyor infrastructure, and without software IP, Carter currently depends on third-party integrators for this. SOFTBOT gives Carter the integration capability to connect its conveyors to client WMS and robot systems directly, reducing dependency on third-party software while generating software licensing revenue.", products: "SOFTBOT cloud middleware" },
+      ]},
+      { cat: "Robotics — Inbound/Outbound", pairings: [
+        { name: "Pickle Robot", primary: true, cost: 245, tier: "B", ip: 4, fit: "4.55", list: "Robotics", synergy: "Pickle\u2019s autonomous truck unloading robot is the natural inbound complement to Carter\u2019s MDR conveyor: packages come off the truck via Pickle and immediately onto Carter\u2019s CarterRoll/CarterFlex conveyor for sortation. For Carter\u2019s USPS relationship, autonomous dock unloading addresses the highest-cost, highest-injury labor step in parcel processing. The dock-to-conveyor-to-sort automation chain is a complete inbound solution that Carter can\u2019t currently offer.", products: "Autonomous truck unloading robot" },
+        { name: "Friday Systems", primary: false, cost: 122, tier: "B", ip: 5, fit: "4.75", list: "Robotics", synergy: "Friday\u2019s robotic palletizer sits at the end of Carter\u2019s outbound conveyor lines, automating the pallet build step. Carter\u2019s 24VDC MDR conveyor feeds sorted parcels to Friday\u2019s mixed-case palletizer, creating a complete conveyor-to-pallet-to-ship outbound automation chain. Friday\u2019s SaaS model also introduces recurring revenue to Carter\u2019s hardware-centric business, and both companies serve the parcel and distribution verticals.", products: "FRIDAY robotic palletizer" },
+      ]},
+      { cat: "GTP / Storage", pairings: [
+        { name: "Brightpick Group", primary: true, cost: 148, tier: "B", ip: 5, fit: "4.50", list: "GTP", synergy: "Brightpick\u2019s Autopicker AMR autonomously picks items from storage and delivers them to Carter\u2019s MDR conveyor for outbound processing. This pairing combines Carter\u2019s proprietary conveyor hardware with autonomous GTP picking \u2014 creating a hardware-to-ship solution where Carter captures margin on both the conveyor infrastructure and the GTP picking system, rather than just selling conveyors into someone else\u2019s automated facility.", products: "Autopicker autonomous picking AMR" },
+        { name: "IntelliStore", primary: false, cost: 45, tier: "A", ip: 4, fit: "4.30", list: "GTP", synergy: "IntelliStore\u2019s AI-driven GTP system feeds items into Carter\u2019s MDR conveyor infrastructure. At Tier A pricing, IntelliStore is an affordable storage automation addition that pairs naturally with Carter\u2019s conveyor backbone. For Carter\u2019s e-commerce and parcel clients, this creates an automated storage-to-conveyor-to-ship workflow where Carter\u2019s own hardware handles the motion and IntelliStore handles the storage.", products: "AI-driven GTP storage" },
+      ]},
+    ]
+  },
+  {
+    id: "dmwh",
+    name: "DMW&H Systems",
+    software: "indaGO WES + Shiraz WCS",
+    cost: 153, tier: "B", ip: 3, fit: "4.45",
+    revenue: "$60M", employees: "150", founded: "2015 (merger)", hq: "Fairfield, NJ",
+    ownership: "Private (Dearborn Mid-West + W&H Systems merger 2015)",
+    keyCustomers: ["Midwest Express (AS/RS)", "REI (393K sq ft DC, 75K SKUs)", "Wine & Spirits Distributors"],
+    productDetails: [
+      {name:"indaGO WES",desc:"Proprietary warehouse execution software for wave release optimization, labor planning, inventory management.",type:"sw"},
+      {name:"Shiraz WCS",desc:"Proprietary warehouse control system for equipment coordination.",type:"sw"},
+      {name:"Muratec FX Quad AS/RS",desc:"Automated storage and retrieval integration with high-density capability.",type:"svc"},
+      {name:"Shuttle-Based Storage",desc:"Advanced inventory storage systems (deployed at REI: 75,000 SKU capacity).",type:"svc"},
+      {name:"Conveyor & Sortation",desc:"Custom-designed conveyor and sortation with integrated controls.",type:"svc"},
+    ],
+    softwareDetail: "indaGO WES: Wave release optimization, labor planning, inventory. Shiraz WCS: Equipment control layer. Dual software stack but IP score of 3 suggests limited differentiation vs. competitors.",
+    hardwareDetail: "No proprietary hardware manufacturing. Integrates Muratec AS/RS, shuttle systems, conveyor/sortation. Partnership with Movu Robotics (March 2024) for pallet/case picking robots.",
+    partnerships: "Movu Robotics (Mar 2024 \u2014 atlas, escala, ifollow, eligo), Muratec (AS/RS)",
+    hasWES: true, hasWCS: true, hasHardware: false, hasRobotics: false, hasGTP: false,
+    hasAI: false, hasCloudPlatform: false, hasManufacturing: false,
+    strengths: ["Dual WES+WCS stack (indaGO + Shiraz)", "Movu Robotics partnership (2024)", "REI flagship (393K sq ft, 75K SKUs)", "50+ years combined experience", "$60M revenue / 150 employees"],
+    gaps: ["No proprietary robotics (Movu dependency)", "No own AS/RS hardware (Muratec dependent)", "IP score 3 (limited software differentiation)", "No AI/ML capabilities", "Consolidation pressure from Tier-1 integrators"],
+    peripherals: [
+      { cat: "Robotics", pairings: [
+        { name: "PlusOne Robotics", primary: true, cost: 261, tier: "B", ip: 4, fit: "4.00", list: "Robotics", synergy: "DMW&H\u2019s indaGO WES directs fulfillment workflows while Shiraz WCS controls equipment \u2014 but they lack autonomous picking capability. PlusOne\u2019s supervised autonomy model fits DMW&H\u2019s large-facility approach (REI\u2019s 393K sq ft DC with 75K SKUs): robots handle high-volume parcel picks while remote operators manage exceptions. indaGO would orchestrate the workflow split between robot stations and human zones, leveraging PlusOne\u2019s Yonder platform for fleet-wide supervision.", products: "Yonder platform, EasyPick AI" },
+        { name: "Ambi Robotics", primary: false, cost: 203, tier: "B", ip: 5, fit: "4.75", list: "Robotics", synergy: "Ambi\u2019s AI sorting automates parcel sort stations that indaGO currently directs via manual workflows. For DMW&H\u2019s wine & spirits distribution clients \u2014 where fragile handling matters \u2014 AmbiSort\u2019s AI vision provides careful, product-aware sorting that reduces breakage. indaGO manages the sort plan and wave release while AmbiSort executes the physical sort, adding autonomous capability to DMW&H\u2019s existing dual-software (indaGO+Shiraz) control stack.", products: "AmbiSort AI gantry sorting" },
+      ]},
+      { cat: "GTP / Storage", pairings: [
+        { name: "Urbx", primary: true, cost: 26, tier: "A", ip: 3, fit: "4.50", list: "GTP", synergy: "Urbx\u2019s vertical high-density storage is ideal for DMW&H\u2019s e-commerce DC clients who need maximum storage density. indaGO orchestrates order fulfillment from Urbx storage locations, directing picks that are retrieved vertically and fed into Shiraz-controlled conveyor for outbound processing. At Tier A pricing, Urbx gives DMW&H proprietary storage hardware to reduce their current dependency on Muratec AS/RS, capturing hardware margin that currently goes to the OEM partner.", products: "Vertical robotic retrieval" },
+        { name: "cellgo.io", primary: false, cost: 37, tier: "A", ip: 4, fit: "3.25", list: "GTP", synergy: "cellgo\u2019s modular cube storage complements DMW&H\u2019s shuttle-based systems for small-part fulfillment in e-commerce DCs. The modular design lets DMW&H\u2019s clients start small and expand incrementally \u2014 matching the mid-market approach. indaGO directs picks from cube storage while Shiraz coordinates the conveyor that moves items to packing, creating a complete small-part fulfillment workflow.", products: "Modular cube AS/RS" },
+      ]},
+      { cat: "Software", pairings: [
+        { name: "Roboteon", primary: true, cost: 46, tier: "A", ip: 5, fit: "4.65", list: "Software", synergy: "DMW&H has indaGO WES and Shiraz WCS, but as their Movu Robotics partnership (March 2024) brings atlas, escala, ifollow, and eligo robots into client facilities, they need multi-robot fleet orchestration. Roboteon provides this: managing heterogeneous robot fleets (Movu robots + any other vendor\u2019s AMRs) within indaGO\u2019s execution framework. This extends DMW&H from integrating Movu robots to orchestrating any robot brand \u2014 reducing single-vendor dependency.", products: "AI robotics orchestration WES" },
+        { name: "CognitOps", primary: false, cost: 51, tier: "A", ip: 5, fit: "4.60", list: "Software", synergy: "CognitOps\u2019 ALIGN AI adds predictive workforce and throughput analytics on top of indaGO\u2019s execution data. For DMW&H\u2019s flagship REI deployment (75K SKUs, seasonal demand spikes), predictive analytics directly addresses the demand variability challenge: forecasting labor needs before peak periods and optimizing throughput across the facility. This differentiates DMW&H against larger integrators like Dematic and SSI who bundle their own analytics.", products: "ALIGN AI ops intelligence" },
+      ]},
+    ]
+  },
+  {
+    id: "conveyco",
+    name: "Conveyco",
+    software: "New Dawn / Horizon WES",
+    cost: 67, tier: "A", ip: 4, fit: "4.65",
+    revenue: "$19.3M", employees: "39", founded: "~1986", hq: "Bristol, CT",
+    ownership: "Private",
+    keyCustomers: ["Lane Automotive", "Harry & David\u2019s", "The Children\u2019s Place", "MBI Inc."],
+    productDetails: [
+      {name:"New Dawn WES",desc:"Proprietary WES: real-time visibility, order fulfillment orchestration, inventory management, shipping coordination, multi-pick methodology (voice, light, RF, hybrid).",type:"sw"},
+      {name:"Horizon WES",desc:"Advanced WES with emulators to reduce implementation time. MHI Innovation Award finalist (2021). Current-gen platform.",type:"sw"},
+      {name:"GTP Integration",desc:"Hai Robotics HaiPick modular AS/RS solutions integration.",type:"svc"},
+      {name:"Conveyor & Sortation SI",desc:"Custom conveyor systems, sorters, material flow automation.",type:"svc"},
+      {name:"AMR Orchestration",desc:"Mobile robot integration via New Dawn WES platform.",type:"svc"},
+    ],
+    softwareDetail: "Dual WES: New Dawn (legacy, production) + Horizon (current gen with emulators). Supports voice, pick-to-light, RF, hybrid picking. AMR orchestration through WES. Near-50 year track record.",
+    hardwareDetail: "No proprietary hardware. Conveyor and AS/RS integration. Partnership with Hai Robotics for HaiPick modular GTP AS/RS. Sortation systems.",
+    partnerships: "Hai Robotics (HaiPick modular AS/RS GTP)",
+    hasWES: true, hasWCS: true, hasHardware: false, hasRobotics: false, hasGTP: false,
+    hasAI: false, hasCloudPlatform: false, hasManufacturing: false,
+    strengths: ["Dual WES platform (New Dawn + Horizon)", "MHI Innovation Award finalist", "Hai Robotics GTP partnership", "Multi-pick methodology support", "50-year track record"],
+    gaps: ["No proprietary robotics", "No own GTP hardware (Hai dependent)", "No AI/ML analytics", "Legacy WES transition risk", "Small team (39 people)", "No cloud platform"],
+    peripherals: [
+      { cat: "Robotics", pairings: [
+        { name: "Nomagic", primary: true, cost: 258, tier: "B", ip: 4, fit: "4.45", list: "Robotics", synergy: "Conveyco integrates Hai Robotics HaiPick AS/RS systems controlled by their dual WES platform (New Dawn + Horizon). Nomagic\u2019s AI picking station automates the human pick step at AS/RS workstations \u2014 the exact handoff point where GTP meets human labor. Horizon WES directs the pick sequence and Nomagic executes it robotically, transforming Conveyco from a GTP integrator to a fully automated GTP picking solution. For Children\u2019s Place and Harry & David clients, this addresses the seasonal labor challenge.", products: "AI robotic picking station" },
+        { name: "Friday Systems", primary: false, cost: 122, tier: "B", ip: 5, fit: "4.75", list: "Robotics", synergy: "Friday\u2019s robotic palletizer adds outbound automation to Conveyco\u2019s AS/RS-to-ship workflow. After Horizon WES directs picks from Hai Robotics AS/RS and items flow through Conveyco\u2019s sortation, Friday palletizes for shipping. This completes the storage-to-ship chain with automation at every step. Friday\u2019s SaaS model adds recurring revenue to complement Conveyco\u2019s project-based integration business.", products: "FRIDAY robotic palletizer" },
+      ]},
+      { cat: "GTP / Storage", pairings: [
+        { name: "Mytra", primary: true, cost: 548, tier: "C", ip: 5, fit: "4.55", list: "GTP", synergy: "Conveyco currently depends on Hai Robotics for GTP hardware \u2014 a partnership that leaves them without proprietary storage technology. Mytra\u2019s 3D lattice AS/RS gives Conveyco its own enterprise-grade storage product, orchestrated by Horizon WES. This eliminates the Hai dependency for large-scale projects while Hai integration continues for mid-market. Owning proprietary AS/RS hardware transforms Conveyco from integrator to technology provider, capturing hardware margin and IP value.", products: "3D lattice AS/RS" },
+        { name: "Brightpick Group", primary: false, cost: 148, tier: "B", ip: 5, fit: "4.50", list: "GTP", synergy: "Brightpick\u2019s Autopicker adds fully autonomous GTP picking alongside Conveyco\u2019s Hai Robotics integrations. Where HaiPick brings items to a person, Brightpick picks them autonomously \u2014 giving Conveyco both modes to offer clients based on their labor availability and automation appetite. Horizon WES can orchestrate both HaiPick and Brightpick systems in the same facility, providing flexible automation scaling.", products: "Autopicker autonomous AMR" },
+      ]},
+      { cat: "Software", pairings: [
+        { name: "SVT Robotics", primary: true, cost: 133, tier: "B", ip: 5, fit: "4.30", list: "Software", synergy: "Conveyco integrates multiple AS/RS vendors (Hai Robotics, others) and needs rapid, vendor-neutral integration middleware. SVT\u2019s SOFTBOT platform provides pre-built API connectors that accelerate these integrations \u2014 connecting Horizon WES to any AS/RS, AMR, or conveyor vendor without custom development per project. For Conveyco\u2019s multi-technology approach (voice, light, RF, hybrid picking), SOFTBOT reduces integration timelines from weeks to days.", products: "SOFTBOT cloud middleware" },
+        { name: "Logistiview", primary: false, cost: 87, tier: "B", ip: 4, fit: "4.15", list: "Software", synergy: "Logistiview\u2019s AR wearables add visual picking guidance at Conveyco\u2019s AS/RS workstations. Conveyco already supports multiple pick methodologies (voice, pick-to-light, RF, hybrid) through their WES; adding AR creates a fifth modality that combines visual overlay with Horizon\u2019s pick direction. For complex multi-SKU environments (Harry & David\u2019s gift assemblies, Lane Automotive\u2019s auto parts), visual confirmation reduces errors beyond what voice or light alone achieve.", products: "Cloud WES with AR wearables" },
+      ]},
+    ]
+  },
+  {
+    id: "cisco",
+    name: "Cisco Eagle",
+    software: "None (3rd party VWare; acquired Trinity Controls 2024)",
+    cost: 131, tier: "B", ip: 2, fit: "4.80",
+    revenue: "$55M", employees: "158", founded: "1970", hq: "Coppell/Dallas, TX",
+    ownership: "100% Employee-Owned ESOP (since April 2000)",
+    keyCustomers: ["The Container Store (+60% DC output)", "Cargill (30K cases/day)", "Groceryworks.com", "American Greetings"],
+    productDetails: [
+      {name:"Custom Conveyor Systems",desc:"Application-specific conveyor designs for manufacturing, distribution, warehousing.",type:"hw"},
+      {name:"Automated Sortation",desc:"High-speed sorting solutions for parcel, carton, logistics.",type:"hw"},
+      {name:"PLC Controls & HMI",desc:"Advanced controls through Systems Technology Group (acquired Trinity Controls 2024).",type:"sw"},
+      {name:"Material Transport Systems",desc:"Pallet and case handling automation with controls integration.",type:"hw"},
+      {name:"24/7 Service & Maintenance",desc:"Emergency repair with 2-3 hour regional response time.",type:"svc"},
+    ],
+    softwareDetail: "No proprietary WES/WCS. Uses 3rd-party VWare WMS/WCS from SI Systems. Acquired Trinity Controls (2024) adding PLC/HMI development capability. Partners with Savoye AiRVOS.",
+    hardwareDetail: "Conveyor system design and manufacturing. Automated sortation. Pallet/case handling. 50+ years experience. Significant employee decline (400+ to 158) suggests restructuring.",
+    partnerships: "SI Systems (VWare WMS/WCS), Savoye (AiRVOS), Trinity Controls (acquired 2024)",
+    hasWES: false, hasWCS: false, hasHardware: true, hasRobotics: false, hasGTP: false,
+    hasAI: false, hasCloudPlatform: false, hasManufacturing: true,
+    strengths: ["ESOP culture (100% employee-owned)", "$55M revenue / 158 employees", "Trinity Controls acquisition adds PLC/HMI", "2-3 hour emergency response", "Container Store +60% output case study"],
+    gaps: ["No proprietary WES/WCS (VWare dependency)", "No robotics", "No GTP/AS-RS", "Low IP score (2)", "Employee decline (400+ to 158)", "No AI/analytics"],
+    peripherals: [
+      { cat: "Software — Critical Gap Fill", pairings: [
+        { name: "Roboteon", primary: true, cost: 46, tier: "A", ip: 5, fit: "4.65", list: "Software", synergy: "Cisco Eagle\u2019s most critical gap is its dependency on third-party VWare WMS/WCS from SI Systems. Roboteon\u2019s AI robotics orchestration WES gives Cisco Eagle proprietary execution software \u2014 eliminating VWare dependency entirely. Roboteon manages robot fleets and provides the workflow orchestration that Cisco Eagle\u2019s newly acquired Trinity Controls PLC capability can execute at the equipment level. This creates a proprietary software stack (Roboteon WES + Trinity PLC controls) that Cisco Eagle fully owns.", products: "AI robotics orchestration WES" },
+        { name: "Top Hat Engineering", primary: false, cost: 11, tier: "A", ip: 3, fit: "4.15", list: "Software", synergy: "Top Hat\u2019s ClarityWOS SaaS platform provides WMS/WES orchestration at an ultra-low Tier A price ($11M). For Cisco Eagle, this is the cheapest path to replacing VWare dependency with owned software. ClarityWOS handles order management and warehouse execution while Trinity Controls (acquired 2024) handles PLC/HMI. The combined Tier A investment gives Cisco Eagle a complete software+controls stack without the larger investment Roboteon represents.", products: "ClarityWOS SaaS platform" },
+        { name: "Ascent Warehouse", primary: false, cost: 21, tier: "A", ip: 3, fit: "4.10", list: "Software", synergy: "Ascent\u2019s cloud WMS adds modern order management to Cisco Eagle\u2019s distribution network. With Trinity Controls providing PLC/HMI capability and Ascent providing cloud WMS, Cisco Eagle builds a multi-layered software stack. This is an alternative WMS option to Top Hat\u2019s all-in-one ClarityWOS, potentially better for clients who need standalone WMS integration with existing ERP systems.", products: "Cloud WMS, order management" },
+      ]},
+      { cat: "Robotics", pairings: [
+        { name: "Friday Systems", primary: true, cost: 122, tier: "B", ip: 5, fit: "4.75", list: "Robotics", synergy: "Friday\u2019s SaaS robotic palletizer adds automation to Cisco Eagle\u2019s material handling installations at the palletizing step. Cisco Eagle\u2019s Container Store case study (+60% DC output improvement) demonstrates their strength in throughput optimization \u2014 adding robotic palletizing extends this further. Friday\u2019s SaaS model introduces recurring revenue to Cisco Eagle\u2019s ESOP employee-owned business, improving per-employee revenue generation.", products: "FRIDAY robotic palletizer, SaaS" },
+        { name: "Pickle Robot", primary: false, cost: 245, tier: "B", ip: 4, fit: "4.55", list: "Robotics", synergy: "Pickle\u2019s autonomous truck unloading feeds directly into Cisco Eagle\u2019s conveyor and sortation systems at the dock. Cisco Eagle designs application-specific conveyor from dock to ship \u2014 Pickle automates the first step (truck unload) that is currently manual, high-injury, and hard to staff. For their Cargill relationship (30K cases/day), autonomous unloading at the dock directly addresses the volume and labor challenges.", products: "Autonomous truck unloading" },
+      ]},
+      { cat: "GTP / Storage", pairings: [
+        { name: "Prime Robotics", primary: true, cost: 50, tier: "A", ip: 3, fit: "4.15", list: "GTP", synergy: "Prime Robotics\u2019 AMR-based GTP adds automated storage and retrieval to Cisco Eagle\u2019s manual storage and racking portfolio. Cisco Eagle currently designs conveyor and sortation systems but relies on manual storage \u2014 adding AMR GTP creates an automated storage-to-conveyor workflow. Both Tier A targets with modest investment, giving the ESOP-owned company a path to expand its automation offerings without major capital commitments.", products: "AMR-based storage & retrieval" },
+        { name: "IntelliStore", primary: false, cost: 45, tier: "A", ip: 4, fit: "4.30", list: "GTP", synergy: "IntelliStore\u2019s AI-powered AS/RS upgrades Cisco Eagle\u2019s storage systems from manual to automated with AI-optimized placement and retrieval. At Tier A pricing, this is an affordable automation addition that feeds items directly into Cisco Eagle\u2019s conveyor and sortation backbone. The AI-driven optimization particularly benefits high-SKU environments like American Greetings (large seasonal product catalogs).", products: "AI-driven GTP storage" },
+      ]},
+    ]
+  },
+  {
+    id: "zion",
+    name: "Zion Solutions Group",
+    software: "Zion Apex WES (proprietary)",
+    cost: 87, tier: "B", ip: 2, fit: "4.55",
+    revenue: "$15M", employees: "50", founded: "March 2022", hq: "Bogart, GA",
+    ownership: "Private (founded by Jim Shaw, Drew Eubank, Jordan Frank, Chuck Frank; no VC)",
+    keyCustomers: ["Lakeshore Learning (1.2M sq ft DC, 500+ jobs)", "Multiple Fortune 500 Companies"],
+    productDetails: [
+      {name:"Zion Apex WES",desc:"Proprietary WES: automated wave releases, labor planning, optimized picking strategies, intelligent slotting, inventory management, system orchestration.",type:"sw"},
+      {name:"GTP Automation",desc:"Goods-to-person robotic system design: mobile robots, shelf-level robots, GTP, person-to-goods.",type:"svc"},
+      {name:"Supply Chain Consulting",desc:"Strategic consulting for DC optimization and automation planning.",type:"svc"},
+      {name:"Systems Integration",desc:"End-to-end: robotic systems, conveyor networks, software platforms, facility design.",type:"svc"},
+    ],
+    softwareDetail: "Zion Apex WES: Proprietary WES orchestrating wave releases, labor optimization, picking strategies, slotting, and multi-system coordination. 150+ completed projects ($10K-$50M). Note: Despite having Apex WES, IP score is 2 \u2014 may reflect early maturity.",
+    hardwareDetail: "No proprietary hardware. Integrates GTP robots, AMRs, shelf-level robots, conveyors. 90+ years combined leadership experience.",
+    partnerships: "Various robot and automation OEMs",
+    hasWES: true, hasWCS: false, hasHardware: false, hasRobotics: true, hasGTP: true,
+    hasAI: false, hasCloudPlatform: false, hasManufacturing: false,
+    strengths: ["Zion Apex WES (proprietary)", "Robotics-first SI (AMR, GTP, shelf-level)", "150+ projects in 3 years", "Lakeshore Learning flagship (1.2M sq ft)", "90+ years combined leadership experience"],
+    gaps: ["Founded 2022 (only 3 years old)", "Low IP score (2) despite proprietary WES", "No own robotics hardware", "No WCS layer", "No AI/ML analytics", "No cloud platform"],
+    peripherals: [
+      { cat: "Software — Critical Gap Fill", pairings: [
+        { name: "SVT Robotics", primary: true, cost: 133, tier: "B", ip: 5, fit: "4.30", list: "Software", synergy: "Zion integrates multiple robot brands (AMRs, GTP, shelf-level robots) but relies on third-party integration software for each vendor. SVT\u2019s SOFTBOT middleware provides pre-built API connectors to 100+ automation vendors, giving Zion proprietary integration IP for the robots they already deploy. With 150+ completed projects in just 3 years, faster integration through SOFTBOT directly increases Zion\u2019s project velocity and margin per engagement.", products: "SOFTBOT cloud middleware" },
+        { name: "Roboteon", primary: false, cost: 46, tier: "A", ip: 5, fit: "4.65", list: "Software", synergy: "Roboteon\u2019s AI robot orchestration complements Zion\u2019s proprietary Apex WES by adding fleet-level intelligence across multiple robot vendors. Apex WES handles warehouse execution (wave releases, labor optimization, slotting); Roboteon manages the robot fleets that execute those plans. For Zion\u2019s Lakeshore Learning deployment (1.2M sq ft, 500+ jobs), multi-vendor robot orchestration is essential as the facility runs multiple robot types simultaneously.", products: "AI robotics orchestration WES" },
+        { name: "CognitOps", primary: false, cost: 51, tier: "A", ip: 5, fit: "4.60", list: "Software", synergy: "CognitOps adds AI analytics intelligence to Zion\u2019s advisory and integration practice. For a company that positions as \u2018supply chain consulting + systems integration,\u2019 having AI-powered operations analytics (throughput prediction, workforce forecasting, bottleneck identification) elevates the advisory capability from experience-based recommendations to data-driven prescriptions. This helps justify Zion\u2019s consulting fees and creates a recurring SaaS relationship with each client.", products: "ALIGN AI ops intelligence" },
+      ]},
+      { cat: "Robotics — Own IP", pairings: [
+        { name: "Jacobi Robotics", primary: true, cost: 73, tier: "A", ip: 5, fit: "4.90", list: "Robotics", synergy: "Zion integrates robots from multiple OEMs but doesn\u2019t program them \u2014 they rely on each vendor\u2019s native programming. Jacobi\u2019s AI motion planning platform gives Zion proprietary robot programming capability across any arm brand. Combined with Apex WES for execution orchestration, Zion would control both the high-level workflow (Apex) and the robot-level motion (Jacobi), capturing value at two layers of the automation stack instead of one.", products: "Jacobi Studio AI motion planning" },
+        { name: "Ambi Robotics", primary: false, cost: 203, tier: "B", ip: 5, fit: "4.75", list: "Robotics", synergy: "Instead of integrating other companies\u2019 sorting robots, owning Ambi gives Zion proprietary AI sorting hardware with an IP score of 5. For a company with a low IP score (2) despite having Apex WES, acquiring Ambi\u2019s deep-learning vision and sorting technology significantly upgrades Zion\u2019s overall IP portfolio. Ambi\u2019s robotic sorting becomes a product Zion can offer as part of every GTP and fulfillment integration, rather than specifying a third party\u2019s.", products: "AmbiSort AI gantry sorting" },
+      ]},
+      { cat: "GTP Hardware", pairings: [
+        { name: "Brightpick Group", primary: true, cost: 148, tier: "B", ip: 5, fit: "4.50", list: "GTP", synergy: "Zion designs and installs GTP systems using third-party hardware. Brightpick gives Zion proprietary GTP hardware with fully autonomous picking capability \u2014 the Autopicker navigates to storage, picks items, and delivers them without human intervention. Owning Brightpick transforms Zion from an integrator that marks up others\u2019 GTP hardware to a GTP technology provider capturing full hardware+software margin on every installation.", products: "Autopicker autonomous AMR" },
+        { name: "Mytra", primary: false, cost: 548, tier: "C", ip: 5, fit: "4.55", list: "GTP", synergy: "Mytra\u2019s 3D lattice AS/RS provides Zion with enterprise-grade storage hardware for large-scale projects like Lakeshore Learning. Apex WES orchestrates the warehouse; Mytra handles the physical storage and retrieval. This is a Tier C investment suited for Zion\u2019s largest enterprise clients, giving Zion a high-end storage product to complement lower-cost AMR GTP from Brightpick for mid-market projects.", products: "3D lattice AS/RS" },
+      ]},
+    ]
+  },
+  {
+    id: "dln",
+    name: "DLN Integrated Systems",
+    software: "PRODirect WMS",
+    cost: 63, tier: "A", ip: 3, fit: "4.35",
+    revenue: "$20M", employees: "50", founded: "2002", hq: "Byron Center, MI",
+    ownership: "Private (founder David Lee Neu passed Aug 2025; Co-founder Phil Schaafsma + leadership team continuing)",
+    keyCustomers: ["Bosch", "HermanMiller", "Kroger", "CVS Pharmacy"],
+    productDetails: [
+      {name:"PRODirect WMS",desc:"Customizable warehouse management software. Flexible integration with existing systems. Fills market gaps with modular design.",type:"sw"},
+      {name:"PRODecant System",desc:"Proprietary automated decanting system: automates box-opening and product consolidation in fulfillment. Labor-saving hardware.",type:"hw"},
+      {name:"Custom Robotics",desc:"In-house engineering team designs and fabricates application-specific robotic systems.",type:"hw"},
+      {name:"Turnkey Material Handling",desc:"Full design-build from receiving through shipping. Conveyors, AS/RS, sortation, pick-to-light.",type:"svc"},
+    ],
+    softwareDetail: "PRODirect: Customizable WMS (not WES/WCS as previously noted). In-house software dev team. Note: Diligence classifies as WMS, not WCS+WES. Integration-focused.",
+    hardwareDetail: "PRODecant automated decanting (proprietary hardware). Custom robotics design+fabrication in-house. Multi-technology integration: conveyors, AS/RS, sortation, pick-to-light. 99% employee retention, avg 20yr tenure.",
+    partnerships: "Various automation vendors",
+    hasWES: false, hasWCS: false, hasHardware: true, hasRobotics: true, hasGTP: false,
+    hasAI: false, hasCloudPlatform: false, hasManufacturing: true,
+    strengths: ["PRODecant proprietary hardware (labor-saving)", "In-house custom robotics fabrication", "Blue-chip customers (Bosch, Kroger, CVS)", "99% employee retention (20yr avg tenure)", "Tier A price ($63M)"],
+    gaps: ["No WES/WCS (PRODirect is WMS)", "Founder passed Aug 2025 (succession risk)", "No AI/ML analytics", "No cloud platform", "Small team (50 people)", "Projects range $10K-multi-million (inconsistent scale)"],
+    peripherals: [
+      { cat: "Robotics", pairings: [
+        { name: "NuMove Robotics", primary: true, cost: 171, tier: "B", ip: 3, fit: "4.30", list: "Robotics", synergy: "DLN has in-house custom robotics fabrication and the PRODecant automated decanting system \u2014 they understand hardware integration at the fabrication level. NuMove\u2019s palletizing/depalletizing with AI vision inspection extends DLN\u2019s hardware capability into standardized, repeatable robotic systems. PRODirect WMS coordinates the pick-to-pallet workflow while NuMove handles the physical pallet build. For DLN\u2019s Bosch and Kroger clients, reliable palletizing automation is a high-priority operational need.", products: "NuLogik controller, pallet/depallet" },
+        { name: "PlusOne Robotics", primary: false, cost: 261, tier: "B", ip: 4, fit: "4.00", list: "Robotics", synergy: "PlusOne\u2019s supervised autonomy model (robots handle routine picks, humans manage exceptions remotely) complements DLN\u2019s existing in-house custom robotics. PRODirect WMS directs the fulfillment workflow; PlusOne\u2019s Yonder platform manages the robot fleet. For DLN\u2019s blue-chip customers (CVS Pharmacy, Kroger), supervised autonomy provides the reliability guarantees that large-scale operations require \u2014 robots don\u2019t stop when they encounter an unknown item.", products: "Yonder platform, EasyPick AI" },
+      ]},
+      { cat: "GTP / Storage", pairings: [
+        { name: "cellgo.io", primary: true, cost: 37, tier: "A", ip: 4, fit: "3.25", list: "GTP", synergy: "cellgo\u2019s modular cube storage pairs naturally with DLN\u2019s PRODirect WMS for small-part fulfillment. DLN\u2019s clients across pharma (CVS) and retail need dense, configurable storage for high-SKU, small-item environments. Both are Tier A targets \u2014 combined under $100M \u2014 and cube storage\u2019s modular, scalable design matches DLN\u2019s project approach of right-sizing automation to each client\u2019s needs.", products: "Modular cube AS/RS" },
+        { name: "IntelliStore", primary: false, cost: 45, tier: "A", ip: 4, fit: "4.30", list: "GTP", synergy: "IntelliStore\u2019s AI-driven GTP storage system adds automated storage and retrieval to DLN\u2019s integration portfolio. PRODirect WMS directs pick sequences while IntelliStore delivers items to pick stations. Three Tier A companies in one bundle (DLN + cellgo + IntelliStore or DLN + IntelliStore + CognitOps) creates an affordable, full-capability platform covering WMS, GTP, and analytics for DLN\u2019s mid-market clients.", products: "AI-driven GTP storage" },
+      ]},
+      { cat: "Software", pairings: [
+        { name: "CognitOps", primary: true, cost: 51, tier: "A", ip: 5, fit: "4.60", list: "Software", synergy: "CognitOps\u2019 ALIGN AI platform adds operations intelligence on top of PRODirect execution data. With 99% employee retention and 20-year average tenure, DLN\u2019s deep domain knowledge combined with CognitOps\u2019 AI analytics creates a powerful advisory capability: experienced engineers interpreting AI-generated insights for clients. All Tier A pricing makes this an efficient addition that enhances DLN\u2019s consulting value proposition.", products: "ALIGN AI ops intelligence" },
+      ]},
+    ]
+  },
+  {
+    id: "dc-integration",
+    name: "DC Integration",
+    software: "None",
+    cost: 4, tier: "A", ip: 2, fit: "4.35",
+    revenue: "$1M", employees: "25", founded: "1982", hq: "Spring Hill, TN",
+    ownership: "Private (independent, founder-led)",
+    keyCustomers: ["Retail Distributors", "DTC Companies", "Food & Processing"],
+    productDetails: [
+      {name:"Automated Conveyor Systems",desc:"Custom-engineered conveyor systems for DCs, manufacturing, fulfillment.",type:"hw"},
+      {name:"Automated Packaging",desc:"Complete packaging and case handling automation.",type:"hw"},
+      {name:"Shipping & Sortation",desc:"Automated shipping and sortation systems.",type:"hw"},
+      {name:"System Maintenance",desc:"Preventative maintenance, replacement parts, system upgrades, energy management.",type:"svc"},
+    ],
+    softwareDetail: "No proprietary software. Minimal software offerings. Primarily hardware/integration focused. NP notes confirm: \u2018Do not see software, would need to determine in further diligence.\u2019",
+    hardwareDetail: "Custom conveyor design and engineering. Automated packaging. Sortation systems. System retrofitting and upgrades. 40+ year track record. Regional Southeast focus.",
+    partnerships: "None noted",
+    hasWES: false, hasWCS: false, hasHardware: true, hasRobotics: false, hasGTP: false,
+    hasAI: false, hasCloudPlatform: false, hasManufacturing: false,
+    strengths: ["40+ year track record", "Custom conveyor engineering", "Ultra-low cost ($4M valuation)", "Regional Southeast niche", "Preventative maintenance infrastructure"],
+    gaps: ["No software at all (WES/WCS/WMS)", "Tiny scale ($1M revenue, 25 people)", "No robotics", "No GTP/AS-RS", "No AI/analytics", "Regional only (Tennessee)"],
+    peripherals: [
+      { cat: "Software — Critical Gap Fill", pairings: [
+        { name: "Roboteon", primary: true, cost: 46, tier: "A", ip: 5, fit: "4.65", list: "Software", synergy: "DC Integration\u2019s most critical gap is having no software whatsoever \u2014 not WES, WCS, or WMS. Roboteon\u2019s AI robotics orchestration WES provides an immediate software platform, giving DC Integration a proprietary execution layer for its custom conveyor systems. At Tier A pricing, Roboteon is an efficient way to transform a 40-year-old hardware integrator into a software+hardware company with genuine AI-driven fleet management capabilities.", products: "AI robotics orchestration WES" },
+        { name: "Top Hat Engineering", primary: false, cost: 11, tier: "A", ip: 3, fit: "4.15", list: "Software", synergy: "Top Hat\u2019s ClarityWOS SaaS platform provides the cheapest path to complete software capability for DC Integration. WMS/WES orchestration through a SaaS model means no heavy upfront software development \u2014 just integrate ClarityWOS with DC Integration\u2019s conveyor designs. At $11M combined with DC Integration\u2019s $4M, this is the most affordable software+hardware SI combination in the entire pipeline.", products: "ClarityWOS SaaS platform" },
+      ]},
+      { cat: "Robotics", pairings: [
+        { name: "Pickle Robot", primary: true, cost: 245, tier: "B", ip: 4, fit: "4.55", list: "Robotics", synergy: "Pickle\u2019s autonomous truck unloading robot feeds directly into DC Integration\u2019s custom conveyor lines at the dock door. DC Integration designs and engineers custom conveyor systems for DCs \u2014 Pickle automates the manual unloading step that feeds those conveyors. This creates a dock-to-sort automation package that DC Integration can offer as a turnkey solution, significantly increasing project value per engagement.", products: "Autonomous truck unloading" },
+        { name: "Friday Systems", primary: false, cost: 122, tier: "B", ip: 5, fit: "4.75", list: "Robotics", synergy: "Friday\u2019s SaaS robotic palletizer sits at the end of DC Integration\u2019s sortation systems, automating outbound palletizing. For DC Integration\u2019s regional Southeast focus (food & processing, retail), palletizing is typically the most labor-intensive outbound step. Friday\u2019s SaaS model introduces recurring revenue alongside DC Integration\u2019s project-based conveyor installations.", products: "FRIDAY robotic palletizer" },
+      ]},
+      { cat: "GTP / Storage", pairings: [
+        { name: "Urbx", primary: true, cost: 26, tier: "A", ip: 3, fit: "4.50", list: "GTP", synergy: "Urbx\u2019s vertical robotic retrieval system provides high-density storage in small footprints, feeding items into DC Integration\u2019s custom conveyor sortation systems. Both Tier A targets with combined valuation under $35M \u2014 making this one of the most affordable anchor+peripheral combinations in the pipeline. Vertical storage + custom conveyor sortation creates a complete, compact fulfillment system for DC Integration\u2019s regional retail and DTC clients.", products: "Vertical robotic retrieval" },
+        { name: "Prime Robotics", primary: false, cost: 50, tier: "A", ip: 3, fit: "4.15", list: "GTP", synergy: "Prime Robotics\u2019 AMR-based GTP adds automated storage and retrieval to DC Integration\u2019s manual DC builds. The AMRs pick items from storage locations and deliver them to DC Integration\u2019s custom conveyor for outbound processing. Both Tier A targets, keeping the combined investment modest while giving DC Integration an automated storage product to expand its service scope beyond conveyor installation.", products: "AMR-based storage & retrieval" },
+      ]},
+    ]
+  },
+  {
+    id: "chc",
+    name: "Conveyor Handling Co.",
+    software: "CHCCS Control System",
+    cost: 215, tier: "B", ip: 3, fit: "4.80",
+    revenue: "$75M", employees: "150", founded: "1986", hq: "Laurel, MD",
+    ownership: "Part of Systems In Motion (five-way consolidation)",
+    keyCustomers: ["Various (diverse industry base)"],
+    productDetails: [
+      {name:"CHCCS Control System",desc:"Proprietary WCS/WES control system for conveyor and warehouse automation equipment coordination.",type:"sw"},
+      {name:"Conveyor Systems",desc:"Full range: belt, roller, chain, screw conveyors in various configurations.",type:"hw"},
+      {name:"Automated Warehouse Solutions",desc:"AS/RS, GTP, AMRs, collaborative robots, sortation, carousels integration.",type:"svc"},
+      {name:"Warehouse Automation Design",desc:"Complete facility design and automation layout services.",type:"svc"},
+    ],
+    softwareDetail: "CHCCS: Proprietary control system (NP confirms). Part of Systems In Motion consolidation bringing integrated controls, electrical, software, and aftermarket capabilities. WCS/WES scope needs verification.",
+    hardwareDetail: "Full conveyor range. Part of 5-way consolidation: Conveyor Solutions + KVK + Electrical Services + SIM Aftermarket + SIM Software. $75M combined revenue, 150 employees. Mid-Atlantic channel strength.",
+    partnerships: "Systems In Motion consolidation entities",
+    hasWES: true, hasWCS: true, hasHardware: true, hasRobotics: false, hasGTP: false,
+    hasAI: false, hasCloudPlatform: false, hasManufacturing: true,
+    strengths: ["CHCCS proprietary controls", "Mid-Atlantic market channel", "$75M revenue / 150 employees", "Full conveyor range + racking", "5-way consolidation breadth"],
+    gaps: ["No robotics", "No GTP/AS-RS (integrates only)", "No AI/analytics", "5-way merger integration complexity", "Controls depth vs full WES uncertain", "No cloud platform"],
+    peripherals: [
+      { cat: "Robotics", pairings: [
+        { name: "Ambi Robotics", primary: true, cost: 203, tier: "B", ip: 5, fit: "4.75", list: "Robotics", synergy: "Conveyor Handling Co.\u2019s sortation stations are controlled by CHCCS, their proprietary control system. Ambi\u2019s AI gantry sorting (AmbiSort) sits at the terminal sort-to-ship points, automating what is currently a manual sort step with AI vision-guided robotic sorting. CHCCS directs the sort plan; AmbiSort executes it physically. As part of the Systems In Motion consolidation, adding robotic sorting to CHCCS-controlled systems creates a differentiated automation offering beyond commodity conveyor.", products: "AmbiSort AI gantry sorting" },
+        { name: "NuMove Robotics", primary: false, cost: 171, tier: "B", ip: 3, fit: "4.30", list: "Robotics", synergy: "NuMove\u2019s palletizing and depalletizing with AI vision inspection adds outbound automation to CHC\u2019s conveyor installations. After CHCCS-controlled conveyor delivers sorted items to the pack/ship area, NuMove builds the outbound pallets. This creates a complete conveyor-to-pallet workflow under CHCCS control. NuMove\u2019s AI vision inspection also catches quality issues before palletization \u2014 valuable for CHC\u2019s diverse industry client base.", products: "NuLogik, pallet/depallet" },
+      ]},
+      { cat: "GTP / Storage", pairings: [
+        { name: "Brightpick Group", primary: true, cost: 148, tier: "B", ip: 5, fit: "4.50", list: "GTP", synergy: "Brightpick\u2019s Autopicker AMR provides autonomous GTP picking that feeds items into CHC\u2019s conveyor sortation backbone. CHCCS orchestrates the flow: Brightpick picks from storage, places onto CHCCS-controlled conveyor, and sortation directs items to ship lanes. This gives CHC a complete storage-to-ship automation chain with proprietary GTP capability, rather than integrating third-party AS/RS where CHC captures no hardware margin.", products: "Autopicker autonomous AMR" },
+        { name: "Urbx", primary: false, cost: 26, tier: "A", ip: 3, fit: "4.50", list: "GTP", synergy: "Urbx\u2019s vertical high-density storage adds a proprietary storage hardware product to CHC\u2019s racking and conveyor portfolio. Items retrieved vertically from Urbx feed directly into CHCCS-controlled conveyor for outbound processing. At Tier A pricing, Urbx is an affordable way to expand CHC from conveyor/racking into automated storage \u2014 a higher-value, higher-margin product category that differentiates the Systems In Motion consolidation.", products: "Vertical robotic retrieval" },
+      ]},
+      { cat: "Software", pairings: [
+        { name: "CognitOps", primary: true, cost: 51, tier: "A", ip: 5, fit: "4.60", list: "Software", synergy: "CognitOps\u2019 ALIGN AI platform extends CHCCS controls with predictive operations intelligence \u2014 forecasting throughput, predicting maintenance needs, and optimizing labor allocation across CHCCS-controlled facilities. For CHC\u2019s Mid-Atlantic market strength (where DC density is high and competition is fierce), AI-powered analytics differentiates CHC\u2019s offering against larger national integrators who bundle their own business intelligence tools.", products: "ALIGN AI ops intelligence" },
+        { name: "Roboteon", primary: false, cost: 46, tier: "A", ip: 5, fit: "4.65", list: "Software", synergy: "Roboteon\u2019s AI robot orchestration upgrades CHCCS from conveyor-focused controls to full robot-aware WES. As CHC\u2019s clients add AMRs and robotic systems alongside CHCCS-controlled conveyor, Roboteon manages those robot fleets within the CHCCS control framework. This is a more targeted upgrade than replacing CHCCS entirely \u2014 Roboteon adds the robot layer while CHCCS continues handling conveyor and sortation control.", products: "AI robotics orchestration WES" },
+      ]},
+    ]
+  },
+];
+
+// ─── RENDER ───
+function renderSidebar() {
+  const sb = document.getElementById("sidebar");
+  sb.innerHTML = '<div class="sb-label">Anchor System Integrators</div>';
+  ANCHORS.forEach(a => {
+    const card = document.createElement("div");
+    card.className = "anchor-card";
+    card.id = "ac-" + a.id;
+    card.onclick = () => selectAnchor(a.id);
+    const capType = (a.hasWES && a.hasHardware) ? "both" : a.hasWES || a.hasWCS ? "sw" : "hw";
+    const capLabel = capType === "both" ? "SW + HW" : capType === "sw" ? "Software" : "Hardware";
+    const capClass = capType === "both" ? "ac-both" : capType === "sw" ? "ac-sw" : "ac-hw";
+    const pctFit = ((parseFloat(a.fit) / 5) * 100);
+    const barColor = pctFit > 90 ? "#4ade80" : pctFit > 80 ? "#60a0f0" : "#f0a060";
+    card.innerHTML = `
+      <div class="ac-name">${a.name}</div>
+      <div class="ac-meta"><span>Tier ${a.tier}</span><span>Fit ${a.fit}</span></div>
+      <div class="ac-meta"><span>${a.revenue} rev · ${a.employees} emp</span><span>${a.hq}</span></div>
+      <span class="ac-tag ${capClass}">${capLabel} · ${a.software.split("(")[0].trim()}</span>
+      <div class="ac-bar"><div class="ac-bar-fill" style="width:${pctFit}%;background:${barColor}"></div></div>
+    `;
+    sb.appendChild(card);
+  });
+}
+
+function selectAnchor(id) {
+  document.querySelectorAll(".anchor-card").forEach(c => c.classList.remove("active"));
+  document.getElementById("ac-" + id).classList.add("active");
+
+  const a = ANCHORS.find(x => x.id === id);
+  const main = document.getElementById("main");
+  let html = "";
+
+  // Hero
+  html += `<div class="anchor-hero">
+    <div class="ah-name">${a.name}</div>
+    <div class="ah-subtitle">Anchor System Integrator · ${a.software}</div>
+    <div class="ah-grid">
+      <div class="ah-stat"><div class="ah-stat-val">${a.fit}</div><div class="ah-stat-lbl">Fit Score</div></div>
+      <div class="ah-stat"><div class="ah-stat-val">${a.ip}/5</div><div class="ah-stat-lbl">IP Score</div></div>
+      <div class="ah-stat"><div class="ah-stat-val">${a.tier}</div><div class="ah-stat-lbl">Tier</div></div>
+      <div class="ah-stat"><div class="ah-stat-val">${a.revenue}</div><div class="ah-stat-lbl">Revenue</div></div>
+      <div class="ah-stat"><div class="ah-stat-val">${a.employees}</div><div class="ah-stat-lbl">Employees</div></div>
+    </div>
+    <div class="ah-cap">
+      <div class="ah-cap-title">Capabilities</div>
+      <div class="ah-caps">
+        <span class="cap-pill ${a.hasWES ? 'has' : 'gap'}">${a.hasWES ? '✓' : '✗'} WES</span>
+        <span class="cap-pill ${a.hasWCS ? 'has' : 'gap'}">${a.hasWCS ? '✓' : '✗'} WCS</span>
+        <span class="cap-pill ${a.hasHardware ? 'has' : 'gap'}">${a.hasHardware ? '✓' : '✗'} Hardware/OEM</span>
+        <span class="cap-pill ${a.hasManufacturing ? 'has' : 'gap'}">${a.hasManufacturing ? '✓' : '✗'} Manufacturing</span>
+        <span class="cap-pill ${a.hasRobotics ? 'has' : 'gap'}">${a.hasRobotics ? '✓' : '✗'} Robotics</span>
+        <span class="cap-pill ${a.hasGTP ? 'has' : 'gap'}">${a.hasGTP ? '✓' : '✗'} GTP/AS-RS</span>
+        <span class="cap-pill ${a.hasAI ? 'has' : 'gap'}">${a.hasAI ? '✓' : '✗'} AI/ML</span>
+        <span class="cap-pill ${a.hasCloudPlatform ? 'has' : 'gap'}">${a.hasCloudPlatform ? '✓' : '✗'} Cloud Platform</span>
+      </div>
+    </div>
+  </div>`;
+
+  // Enriched Profile
+  html += `<div class="profile-section">
+    <div class="ps-title">Company Profile</div>
+    <div class="info-grid">
+      <div class="info-item"><div class="info-lbl">Headquarters</div><div class="info-val">${a.hq}</div></div>
+      <div class="info-item"><div class="info-lbl">Founded</div><div class="info-val">${a.founded}</div></div>
+      <div class="info-item"><div class="info-lbl">Ownership</div><div class="info-val">${a.ownership}</div></div>
+      <div class="info-item"><div class="info-lbl">Partnerships</div><div class="info-val">${a.partnerships}</div></div>
+    </div>
+    <div style="margin-top:12px"><div class="info-lbl" style="margin-bottom:4px">Key Customers</div>
+      <div class="customer-chips">${(a.keyCustomers||[]).map(c=>'<span class="cust-chip">'+c+'</span>').join('')}</div>
+    </div>
+  </div>`;
+
+  // Product Details
+  html += `<div class="profile-section">
+    <div class="ps-title">Products & Solutions (from Diligence)</div>
+    <div class="product-grid">
+      ${(a.productDetails||[]).map(p=>`
+        <div class="product-item">
+          <div class="pi-name">${p.name}</div>
+          <div class="pi-desc">${p.desc}</div>
+          <span class="pi-type ${p.type}">${p.type==='sw'?'Software':p.type==='hw'?'Hardware':'Service'}</span>
+        </div>
+      `).join('')}
+    </div>
+  </div>`;
+
+  // Software & Hardware Detail
+  html += `<div class="profile-section">
+    <div class="ps-title">Software & Hardware Assessment</div>
+    <div class="info-grid" style="grid-template-columns:1fr 1fr">
+      <div class="info-item"><div class="info-lbl">Software Detail</div><div class="info-val" style="font-size:11px">${a.softwareDetail}</div></div>
+      <div class="info-item"><div class="info-lbl">Hardware Detail</div><div class="info-val" style="font-size:11px">${a.hardwareDetail}</div></div>
+    </div>
+  </div>`;
+
+  // Strengths & Gaps
+  html += `<div class="profile-section">
+    <div class="ps-title">Strengths & Gaps</div>
+    <div class="info-grid" style="grid-template-columns:1fr 1fr">
+      <div class="info-item"><div class="info-lbl" style="color:#4ade80">Strengths</div><div class="info-val" style="font-size:11px">${(a.strengths||[]).map(s=>'<div style="margin:2px 0">\u2022 '+s+'</div>').join('')}</div></div>
+      <div class="info-item"><div class="info-lbl" style="color:#e06060">Gaps to Fill</div><div class="info-val" style="font-size:11px">${(a.gaps||[]).map(g=>'<div style="margin:2px 0">\u2022 '+g+'</div>').join('')}</div></div>
+    </div>
+  </div>`;
+
+  // Peripheral sections
+  a.peripherals.forEach(cat => {
+    html += `<div class="section-label">${cat.cat}</div>`;
+    html += `<div class="pair-grid">`;
+    cat.pairings.forEach(p => {
+      html += `
+        <div class="pair-card ${p.primary ? 'primary' : 'alt'}">
+          <div class="pc-header">
+            <div>
+              <div class="pc-name">${p.name}</div>
+              <div class="pc-list">${p.list} · ${p.products}</div>
+            </div>
+            <div class="pc-badges">
+              ${p.primary ? '<span class="badge badge-primary">★ Primary</span>' : '<span class="badge badge-alt">Alt</span>'}
+              <span class="badge badge-tier">Tier ${p.tier}</span>
+            </div>
+          </div>
+          <div class="pc-rationale">
+            <div class="pc-synergy">Why with ${a.name}:</div>
+            ${p.synergy}
+          </div>
+          <div class="pc-stats">
+            <div class="pc-stat"><div class="pc-stat-val">${p.fit}</div><div class="pc-stat-lbl">Fit Score</div></div>
+            <div class="pc-stat"><div class="pc-stat-val">${p.ip}/5</div><div class="pc-stat-lbl">IP Score</div></div>
+            <div class="pc-stat"><div class="pc-stat-val">Tier ${p.tier}</div><div class="pc-stat-lbl">Size Tier</div></div>
+          </div>
+        </div>
+      `;
+    });
+    html += `</div>`;
+  });
+
+  // Primary bundle summary (strategic)
+  const primaries = a.peripherals.flatMap(c => c.pairings.filter(p => p.primary));
+  html += `<div class="combo-summary">
+    <div class="cs-title">Recommended Primary Acquisition Bundle</div>
+    <div class="cs-row"><span class="cs-lbl">Anchor</span><span class="cs-val">${a.name}</span></div>`;
+  primaries.forEach(p => {
+    html += `<div class="cs-row"><span class="cs-lbl">+ ${p.name}</span><span class="cs-val">${p.list}</span></div>`;
+  });
+  html += `<div class="cs-row"><span class="cs-lbl">Bundle fills ${primaries.length} capability gaps</span><span class="cs-val">${primaries.length + 1} companies</span></div>`;
+  html += `</div>`;
+
+  main.innerHTML = html;
+}
+
+renderSidebar();
+</script>
+</body>
+</html>
