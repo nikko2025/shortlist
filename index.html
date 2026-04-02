@@ -3,484 +3,1005 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Körber NA Pipeline — Product Cluster Map</title>
+<title>System Integrator Landscape Dashboard v4 — Körber AG</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0a1628; color: #e0e6ed; overflow-x: hidden; }
-
-  .header {
-    text-align: center; padding: 32px 20px 16px;
-    background: linear-gradient(135deg, #0a1628 0%, #132744 100%);
-    border-bottom: 2px solid #1e3a5f;
+  :root {
+    --korber-blue: #003865;
+    --korber-light: #0066b2;
+    --korber-accent: #e8772e;
+    --bg: #f5f7fa;
+    --card: #ffffff;
+    --border: #dde2ea;
+    --text: #1a2332;
+    --muted: #6b7a8e;
+    --full: #1a7340;
+    --strong: #2e9e5b;
+    --moderate: #f0a500;
+    --limited: #e05c00;
+    --none: #b0bac6;
+    --unknown: #dde2ea;
+    --tag-bg: #eaf0f7;
+    --rank-gold: #e8772e;
+    --rank-silver: #8fa0b2;
+    --chip-selected: #003865;
   }
-  .header h1 { font-size: 26px; color: #fff; letter-spacing: 1px; }
-  .header .subtitle { font-size: 13px; color: #7a9cc6; margin-top: 6px; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.4;
+  }
 
+  /* ── Header ── */
+  header {
+    background: var(--korber-blue);
+    color: #fff;
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 8px rgba(0,0,0,.2);
+  }
+  header h1 { font-size: 18px; font-weight: 700; letter-spacing: .02em; }
+  header .sub { font-size: 11px; color: rgba(255,255,255,.65); margin-top: 2px; }
+  .stamp {
+    background: var(--korber-accent);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 3px;
+    letter-spacing: .08em;
+  }
+
+  /* ── Controls bar ── */
+  .controls {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 32px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+  }
+  .controls-group { display: flex; align-items: center; gap: 8px; }
+  .controls-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 11px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: #fff;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    transition: all .15s;
+    user-select: none;
+  }
+  .toggle-btn .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--korber-light); }
+  .toggle-btn.active { background: var(--korber-blue); color: #fff; border-color: var(--korber-blue); }
+  .toggle-btn.active .dot { background: var(--korber-accent); }
+  .toggle-btn:hover { border-color: var(--korber-light); }
+  .filter-select {
+    padding: 4px 10px;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    font-size: 12px;
+    background: #fff;
+    cursor: pointer;
+  }
+  .btn-all, .btn-none {
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1.5px solid var(--border);
+    background: #fff;
+    font-size: 11px;
+    cursor: pointer;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .btn-all:hover, .btn-none:hover { border-color: var(--korber-light); color: var(--korber-blue); }
+
+  /* ── Dimension Ranker Panel ── */
+  .ranker-panel {
+    background: #fff;
+    border-bottom: 2px solid var(--korber-accent);
+    padding: 14px 32px 16px;
+  }
+  .ranker-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .ranker-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--korber-blue);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+  .ranker-counter {
+    font-size: 11px;
+    font-weight: 700;
+    background: var(--tag-bg);
+    color: var(--muted);
+    padding: 2px 10px;
+    border-radius: 10px;
+    transition: all .2s;
+  }
+  .ranker-counter.has-selection {
+    background: var(--korber-accent);
+    color: #fff;
+  }
+  .ranker-hint {
+    font-size: 11px;
+    color: var(--muted);
+    font-style: italic;
+  }
+  .btn-clear-rank {
+    margin-left: auto;
+    padding: 4px 12px;
+    border-radius: 6px;
+    border: 1.5px solid var(--border);
+    background: #fff;
+    font-size: 11px;
+    cursor: pointer;
+    color: var(--muted);
+    font-weight: 600;
+    transition: all .15s;
+  }
+  .btn-clear-rank:hover { border-color: var(--korber-accent); color: var(--korber-accent); }
+  .btn-clear-rank:disabled { opacity: .4; cursor: default; }
+
+  /* Dimension chips container */
+  .dim-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .dim-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 11px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: #fff;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text);
+    transition: all .15s;
+    user-select: none;
+    white-space: nowrap;
+  }
+  .dim-chip:hover { border-color: var(--korber-light); color: var(--korber-blue); background: #f0f5fb; }
+  .dim-chip.selected {
+    background: var(--chip-selected);
+    color: #fff;
+    border-color: var(--chip-selected);
+    font-weight: 700;
+  }
+  .dim-chip.selected:hover { background: var(--korber-light); border-color: var(--korber-light); }
+  .dim-chip.disabled { opacity: .4; cursor: not-allowed; }
+  .dim-chip.disabled:hover { border-color: var(--border); color: var(--text); background: #fff; }
+  .chip-rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--korber-accent);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .cat-chip-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+  .cat-chip-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-right: 2px;
+    white-space: nowrap;
+  }
+  .chip-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* ── Summary Cards ── */
+  .summary-bar {
+    display: flex;
+    gap: 12px;
+    padding: 16px 32px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    transition: all .3s;
+  }
+  .score-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 18px;
+    min-width: 130px;
+    flex: 0 0 auto;
+    cursor: pointer;
+    transition: box-shadow .15s, transform .15s, border-color .2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .score-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.1); transform: translateY(-1px); }
+  .score-card .co-name { font-size: 12px; font-weight: 700; color: var(--korber-blue); }
+  .score-card .co-spec { font-size: 10px; color: var(--muted); margin-top: 2px; line-height: 1.3; }
+  .score-card .fit-score { font-size: 22px; font-weight: 800; color: var(--korber-accent); margin-top: 6px; }
+  .score-card .fit-label { font-size: 10px; color: var(--muted); }
+  .score-card .rank-score { font-size: 11px; font-weight: 700; color: var(--korber-light); margin-top: 4px; }
+  .score-card .bar-bg { background: #eee; height: 4px; border-radius: 2px; margin-top: 8px; }
+  .score-card .bar-fill { height: 4px; border-radius: 2px; background: linear-gradient(90deg, var(--korber-light), var(--korber-accent)); transition: width .3s; }
+  .score-card.dimmed { opacity: .35; }
+  .score-card.rank-1 { border-color: var(--rank-gold); box-shadow: 0 0 0 2px rgba(232,119,46,.25); }
+  .rank-badge {
+    position: absolute;
+    top: 8px; right: 10px;
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--muted);
+    background: var(--tag-bg);
+    padding: 1px 6px;
+    border-radius: 8px;
+  }
+  .rank-badge.rank-1 { background: var(--rank-gold); color: #fff; }
+
+  /* ── Rank explanation strip ── */
+  .rank-strip {
+    display: none;
+    background: #eaf2ff;
+    border-bottom: 1px solid #c5d8f0;
+    padding: 8px 32px;
+    font-size: 11px;
+    color: var(--korber-blue);
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .rank-strip.active { display: flex; }
+  .rank-strip strong { font-weight: 700; }
+  .rank-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--korber-blue);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 10px;
+  }
+
+  /* ── Main table wrapper ── */
+  .table-section {
+    padding: 0 32px 32px;
+    overflow-x: auto;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 0 8px;
+  }
+  .section-header h2 { font-size: 14px; font-weight: 700; color: var(--korber-blue); }
+  .section-header .badge {
+    font-size: 10px;
+    font-weight: 700;
+    background: var(--tag-bg);
+    color: var(--muted);
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+
+  /* ── Matrix Table ── */
+  table.matrix {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 6px rgba(0,0,0,.06);
+    font-size: 12px;
+  }
+  table.matrix thead th {
+    background: var(--korber-blue);
+    color: #fff;
+    padding: 10px 14px;
+    text-align: center;
+    font-weight: 600;
+    white-space: nowrap;
+    font-size: 12px;
+    min-width: 90px;
+    transition: opacity .2s;
+  }
+  table.matrix thead th:first-child {
+    text-align: left;
+    min-width: 220px;
+    max-width: 240px;
+  }
+  table.matrix thead th.dimmed-col { opacity: .3; }
+  table.matrix thead th.rank-highlight { background: #00274d; }
+  .th-inner { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .th-score { font-size: 16px; font-weight: 800; color: var(--korber-accent); }
+  .th-rank-score { font-size: 10px; font-weight: 600; color: rgba(255,255,255,.75); margin-top: 1px; }
+  .th-name { font-size: 11px; }
+  .th-rank-num { font-size: 9px; color: var(--korber-accent); font-weight: 800; }
+
+  /* Category rows */
+  tr.cat-row td {
+    background: var(--korber-blue);
+    color: rgba(255,255,255,.85);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    padding: 5px 14px;
+  }
+  tr.data-row td {
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+    transition: background .1s;
+  }
+  tr.data-row:hover td { background: #f0f5fb; }
+  tr.data-row td:first-child {
+    font-weight: 500;
+    color: var(--text);
+    font-size: 12px;
+  }
+  tr.data-row.selected-dim td:first-child {
+    background: #fff8f0;
+    font-weight: 700;
+    color: var(--korber-blue);
+    border-left: 3px solid var(--korber-accent);
+  }
+  tr.data-row td.hb-cell {
+    text-align: center;
+    padding: 6px 8px;
+  }
+  tr.data-row.filtered-out { display: none; }
+  tr.data-row td.dimmed-col { opacity: .25; }
+
+  /* Harvey Ball SVGs */
+  .hb { display: inline-block; }
+  .hb svg { display: block; }
+  .hb-tooltip {
+    position: relative;
+    cursor: default;
+  }
+  .hb-tooltip .tt {
+    visibility: hidden;
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--korber-blue);
+    color: #fff;
+    font-size: 10px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    z-index: 100;
+    pointer-events: none;
+  }
+  .hb-tooltip .tt::after {
+    content: '';
+    position: absolute;
+    top: 100%; left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-top-color: var(--korber-blue);
+  }
+  .hb-tooltip:hover .tt { visibility: visible; }
+
+  /* Legend */
   .legend {
-    display: flex; justify-content: center; gap: 24px; padding: 14px 20px;
-    background: #0d1f38; border-bottom: 1px solid #1e3a5f; flex-wrap: wrap;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    padding: 12px 32px 4px;
+    align-items: center;
   }
-  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #8ea8c8; }
-  .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .legend-label { font-size: 11px; font-weight: 600; color: var(--muted); margin-right: 4px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); }
 
-  .filters {
-    display: flex; justify-content: center; gap: 10px; padding: 14px 20px;
-    background: #0d1f38; border-bottom: 1px solid #1e3a5f; flex-wrap: wrap;
+  /* Footnote */
+  .footnote {
+    padding: 16px 32px;
+    font-size: 10px;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    margin-top: 8px;
   }
-  .filter-btn {
-    padding: 6px 16px; border-radius: 20px; border: 1px solid #2a4a6f;
-    background: transparent; color: #8ea8c8; font-size: 12px; cursor: pointer;
-    transition: all 0.2s;
-  }
-  .filter-btn:hover { border-color: #4a8ad4; color: #b8d4f0; }
-  .filter-btn.active { background: #1a3a5f; border-color: #4a8ad4; color: #fff; }
-
-  .canvas { padding: 24px; display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; }
-
-  .list-section {
-    width: 100%; max-width: 1400px;
-  }
-  .list-header {
-    font-size: 16px; font-weight: 700; padding: 10px 18px; margin-bottom: 16px;
-    border-radius: 8px; letter-spacing: 0.5px;
-  }
-
-  .clusters { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; }
-
-  .cluster {
-    background: #111d30; border: 1px solid #1e3a5f; border-radius: 12px;
-    padding: 16px; min-width: 260px; flex: 1; max-width: 440px;
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-  .cluster:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
-
-  .cluster-label {
-    font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px;
-    color: #5a8ab8; margin-bottom: 10px; font-weight: 700;
-    padding-bottom: 6px; border-bottom: 1px solid #1a2e48;
-  }
-  .cluster-icon { margin-right: 6px; }
-
-  .company {
-    display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px;
-    border-radius: 8px; margin-bottom: 4px; cursor: pointer;
-    transition: background 0.15s;
-  }
-  .company:hover { background: #162a45; }
-  .company.expanded { background: #162a45; }
-
-  .status-pip {
-    width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 4px;
-    border: 1.5px solid rgba(255,255,255,0.15);
-  }
-
-  .company-info { flex: 1; min-width: 0; }
-  .company-name { font-size: 13px; font-weight: 600; color: #d4e3f5; }
-  .company-tag {
-    display: inline-block; font-size: 9px; padding: 1px 6px; border-radius: 10px;
-    margin-left: 6px; font-weight: 600; vertical-align: middle;
-  }
-  .company-products { font-size: 11px; color: #7a9cc6; margin-top: 3px; line-height: 1.4; }
-
-  .detail-panel {
-    display: none; margin-top: 8px; padding: 10px 12px;
-    background: #0d1a2e; border-radius: 8px; border: 1px solid #1e3a5f;
-  }
-  .detail-panel.show { display: block; }
-  .detail-row { display: flex; gap: 8px; margin-bottom: 5px; font-size: 11px; }
-  .detail-label { color: #5a8ab8; font-weight: 600; min-width: 80px; flex-shrink: 0; }
-  .detail-value { color: #b0c8e0; line-height: 1.4; }
-
-  .stats-bar {
-    display: flex; justify-content: center; gap: 32px; padding: 16px;
-    background: #0d1f38; border-top: 1px solid #1e3a5f;
-    position: sticky; bottom: 0;
-  }
-  .stat { text-align: center; }
-  .stat-num { font-size: 22px; font-weight: 700; color: #4a9eff; }
-  .stat-label { font-size: 10px; color: #5a7a9a; text-transform: uppercase; letter-spacing: 1px; }
 
   @media (max-width: 768px) {
-    .cluster { min-width: 100%; max-width: 100%; }
+    header, .controls, .ranker-panel, .summary-bar, .legend, .table-section, .footnote { padding-left: 16px; padding-right: 16px; }
   }
 </style>
 </head>
 <body>
 
-<div class="header">
-  <h1>KÖRBER NA ACQUISITION PIPELINE</h1>
-  <div class="subtitle">Product Cluster Map — LongList V3 · 52 Active Companies · March 2026</div>
+<header>
+  <div>
+    <h1>System Integrator Landscape Dashboard v4 — Körber AG</h1>
+    <div class="sub">Körber AG — M&amp;A Diligence | Confidential | April 2026 | Deep Diligence v3</div>
+  </div>
+  <div class="stamp">CONFIDENTIAL</div>
+</header>
+
+<!-- Company visibility controls -->
+<div class="controls">
+  <div class="controls-group">
+    <span class="controls-label">Show Companies</span>
+    <button class="btn-all" onclick="toggleAll(true)">All</button>
+    <button class="btn-none" onclick="toggleAll(false)">None</button>
+  </div>
+  <div class="controls-group" id="company-toggles">
+    <!-- Populated by JS -->
+  </div>
+  <div class="controls-group">
+    <span class="controls-label">Filter Rows</span>
+    <select class="filter-select" id="cat-filter" onchange="filterRows()">
+      <option value="all">All Categories</option>
+      <option value="business">Business Model</option>
+      <option value="picking">Picking Technologies</option>
+      <option value="gtp">Goods-to-Person</option>
+      <option value="conveyor">Conveyor &amp; Sortation</option>
+      <option value="robotic">Robotic Picking</option>
+      <option value="controls">Controls &amp; Modernization</option>
+      <option value="software">Software</option>
+      <option value="services">Field Services &amp; Specialty</option>
+    </select>
+  </div>
 </div>
 
+<!-- ── Dimension Ranker ── -->
+<div class="ranker-panel">
+  <div class="ranker-header">
+    <span class="ranker-title">Rank Companies by Dimensions</span>
+    <span class="ranker-counter" id="ranker-counter">0 / 5 selected</span>
+    <span class="ranker-hint">Select up to 5 dimensions — companies sort left→right by highest score</span>
+    <button class="btn-clear-rank" id="btn-clear-rank" onclick="clearRanking()" disabled>Clear ranking</button>
+  </div>
+  <div class="chip-section" id="chip-section">
+    <!-- Populated by JS -->
+  </div>
+</div>
+
+<!-- Active ranking strip -->
+<div class="rank-strip" id="rank-strip">
+  <strong>Ranking by:</strong>
+  <span id="rank-strip-chips"></span>
+  <span style="margin-left:auto; color:var(--muted)">Highest aggregate score = leftmost column</span>
+</div>
+
+<!-- Summary Cards -->
+<div class="summary-bar" id="summary-bar"></div>
+
+<!-- Legend -->
 <div class="legend">
-  <div class="legend-item"><div class="legend-dot" style="background:#27ae60"></div> Shortlist</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#2ecc71"></div> Promote</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#f39c12"></div> Backup</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#e67e22"></div> Validate</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#3498db"></div> Reclassify</div>
+  <span class="legend-label">Harvey Ball Legend:</span>
+  <span class="legend-item" id="legend-full"></span>
+  <span class="legend-item" id="legend-strong"></span>
+  <span class="legend-item" id="legend-moderate"></span>
+  <span class="legend-item" id="legend-limited"></span>
+  <span class="legend-item" id="legend-none"></span>
+  <span class="legend-item" id="legend-unknown"></span>
 </div>
 
-<div class="filters">
-  <button class="filter-btn active" data-filter="all">All</button>
-  <button class="filter-btn" data-filter="list1">Robotics</button>
-  <button class="filter-btn" data-filter="list2">High-Density / GTP</button>
-  <button class="filter-btn" data-filter="list3">System Integrators</button>
-  <button class="filter-btn" data-filter="list4">Software / WES</button>
-  <button class="filter-btn" data-filter="shortlist">Shortlist Only</button>
-  <button class="filter-btn" data-filter="promote">Promoted Only</button>
+<!-- Matrix Table -->
+<div class="table-section">
+  <div class="section-header">
+    <h2>Product &amp; Business Model Matrix</h2>
+    <span class="badge" id="matrix-badge">7 Companies · 26 Dimensions</span>
+  </div>
+  <table class="matrix" id="matrix-table">
+    <thead id="matrix-head"></thead>
+    <tbody id="matrix-body"></tbody>
+  </table>
 </div>
 
-<div class="canvas" id="canvas"></div>
-
-<div class="stats-bar">
-  <div class="stat"><div class="stat-num" id="stat-total">52</div><div class="stat-label">Active</div></div>
-  <div class="stat"><div class="stat-num" id="stat-shortlist">23</div><div class="stat-label">Shortlist</div></div>
-  <div class="stat"><div class="stat-num" id="stat-promote">13</div><div class="stat-label">Promoted</div></div>
-  <div class="stat"><div class="stat-num" id="stat-backup">8</div><div class="stat-label">Backup</div></div>
-  <div class="stat"><div class="stat-num" id="stat-validate">5</div><div class="stat-label">Validate</div></div>
+<div class="footnote">
+  CONFIDENTIAL — Prepared for Körber AG internal use only. Not for distribution. Harvey ball scores derived from primary diligence research, public filings, and advisor interviews. Scores reflect current operational capability, not roadmap. Last updated: April 1, 2026 (v3 — 26 dimensions). Fit scores are Körber composite scores across five weighted acquisition dimensions. Dimension ranking is additive: each selected dimension contributes equal weight; UNKNOWN = 0 for ranking purposes.
 </div>
 
 <script>
-const DATA = {
-  "list1": {
-    label: "LIST 1: ROBOTICS",
-    color: "#1a4a7a",
-    border: "#2a6aaa",
-    clusters: [
-      {
-        id: "ai-picking",
-        label: "AI Picking & Sorting",
-        icon: "🤖",
-        companies: [
-          { name: "OSARO", status: "shortlist", fit: "4.55", tier: "B", cost: "$420M", products: "SortPick AI robotic picking software, vision-guided kitting", tech: "AI Vision, Deep Learning", ip: 5 },
-          { name: "Nomagic", status: "shortlist", fit: "4.45", tier: "B", cost: "$296M", products: "AI robotic picking station for e-commerce fulfillment & returns", tech: "AI Robotic Picking, Computer Vision", ip: 4 },
-          { name: "Ambi Robotics", status: "promote", fit: "4.75", tier: "B", cost: "$203M", products: "AmbiSort AI gantry sorting for parcel & e-commerce", tech: "AI Sorting, Machine Learning, Computer Vision", ip: 5 },
-          { name: "PlusOne Robotics", status: "promote", fit: "4.00", tier: "B", cost: "$261M", products: "Yonder supervised autonomy platform, EasyPick AI parcel handling", tech: "AI Vision, Supervised Autonomy", ip: 4 },
-        ]
-      },
-      {
-        id: "palletizing",
-        label: "Robotic Palletizing & Depalletizing",
-        icon: "📦",
-        companies: [
-          { name: "Friday Systems", status: "promote", fit: "4.75", tier: "B", cost: "$122M", products: "FRIDAY robotic mixed-case palletizer, SaaS cloud platform", tech: "AI Palletizing, SaaS, Dynamic Pallet Building", ip: 5 },
-          { name: "NuMove Robotics", status: "shortlist", fit: "4.30", tier: "B", cost: "$186M", products: "NuLogik controller, automated palletizing/depalletizing", tech: "Robotic Palletizing, AI Vision Inspection", ip: 4 },
-        ]
-      },
-      {
-        id: "motion-control",
-        label: "Robot Motion Planning & Control",
-        icon: "🧠",
-        companies: [
-          { name: "Jacobi Robotics", status: "shortlist", fit: "4.90", tier: "A", cost: "$73M", products: "Jacobi Studio AI motion planning & simulation platform", tech: "AI Motion Planning Software", ip: 5 },
-          { name: "Mujin", status: "promote", fit: "4.70", tier: "C", cost: "$1,182M", products: "MujinController universal robot controller, TakePickPlanner AI", tech: "Intelligent Robot Controllers, AI Perception", ip: 5 },
-        ]
-      },
-      {
-        id: "truck-unloading",
-        label: "Truck Unloading",
-        icon: "🚛",
-        companies: [
-          { name: "Pickle Robot", status: "shortlist", fit: "4.55", tier: "B", cost: "$283M", products: "Autonomous truck & container unloading robot, AI vision", tech: "Autonomous Unloading, AI Vision", ip: 5 },
-        ]
-      },
-      {
-        id: "forklift-amr",
-        label: "Forklift AMR / Material Transport",
-        icon: "🏗️",
-        companies: [
-          { name: "VisionNav", status: "promote", fit: "4.10", tier: "C", cost: "$800M", products: "VNP autonomous counterbalance forklifts, AI 3D perception", tech: "AI Vision Navigation, Autonomous Forklifts", ip: 4 },
-          { name: "Seegrid", status: "backup", fit: "3.70", tier: "B", cost: "$458M", products: "Palion AMR, Fleet Manager software, tow tractors", tech: "Vision-Guided AMR, Fleet Management", ip: 4 },
-          { name: "Third Wave", status: "backup", fit: "3.75", tier: "B", cost: "$195M", products: "Fleet Commander, autonomous high-reach forklifts", tech: "Shared Autonomy, Teleoperation", ip: 4 },
-        ]
-      },
-      {
-        id: "amr-sorting",
-        label: "AMR Sorting & GTP Robots",
-        icon: "🔄",
-        companies: [
-          { name: "Liftians", status: "backup", fit: "3.80", tier: "A", cost: "$36M", products: "AMR goods-to-person platform for picking & storage", tech: "AMR, Goods-to-Person Robotics", ip: 3 },
-          { name: "Tompkins Robotics", status: "backup", fit: "3.20", tier: "A", cost: "$34M", products: "t-Sort AMR-based sorting system", tech: "AMR, Robotic Sortation", ip: 3 },
-        ]
-      },
-      {
-        id: "modular-robotics",
-        label: "Modular Robotic Systems",
-        icon: "🔧",
-        companies: [
-          { name: "SIMPL Automation", status: "validate", fit: "2.70", tier: "A", cost: "$15M", products: "Modular robotic cells for rapid deployment", tech: "Modular Automation, Rapid Deployment", ip: 2 },
-        ]
-      }
-    ]
-  },
-  "list2": {
-    label: "LIST 2: HIGH-DENSITY STORAGE & GTP",
-    color: "#4a2a6a",
-    border: "#7a4aaa",
-    clusters: [
-      {
-        id: "cube-asrs",
-        label: "Cube / Lattice AS/RS",
-        icon: "🧊",
-        companies: [
-          { name: "Mytra", status: "shortlist", fit: "4.55", tier: "B", cost: "$148M", products: "3D lattice automated storage with AI robots for GTP", tech: "3D Lattice AS/RS, AI Robotics", ip: 5 },
-          { name: "cellgo.io", status: "promote", fit: "3.25", tier: "A", cost: "$37M", products: "Modular automated cube storage for small-part GTP", tech: "Modular Cube AS/RS, Small-Part Robotics", ip: 4 },
-          { name: "Urbx", status: "shortlist", fit: "4.50", tier: "B", cost: "$83M", products: "Vertical robotic retrieval for high-density urban fulfillment", tech: "High-Bay AS/RS, Vertical Storage", ip: 5 },
-        ]
-      },
-      {
-        id: "amr-gtp",
-        label: "AMR-Based Goods-to-Person",
-        icon: "📍",
-        companies: [
-          { name: "Brightpick Group", status: "shortlist", fit: "4.50", tier: "B", cost: "$148M", products: "Autopicker autonomous picking AMR", tech: "AMR, Goods-to-Person, AI Picking", ip: 5 },
-          { name: "Prime Robotics", status: "shortlist", fit: "4.15", tier: "A", cost: "$46M", products: "AMR-based storage & retrieval for order fulfillment", tech: "AMR, GTP Robotics, AS/RS", ip: 4 },
-          { name: "IntelliStore", status: "shortlist", fit: "4.30", tier: "A", cost: "$37M", products: "AI-driven robot storage & order-picking system", tech: "AI-Powered AS/RS, GTP", ip: 5 },
-        ]
-      },
-      {
-        id: "shuttle-multi",
-        label: "Shuttle / Multi-System Platforms",
-        icon: "🔀",
-        companies: [
-          { name: "Movu", status: "validate", fit: "4.00", tier: "B", cost: "$200M", products: "Atlas pallet shuttle, Escala bin shuttle, iFollow AMR, Eligo GTP", tech: "Shuttle AS/RS, AMR, Palletizing", ip: 4 },
-          { name: "Deus Robotics", status: "reclassify", fit: "2.95", tier: "A", cost: "$19M", products: "Sorting & warehouse AMR, conveyor-integrated systems", tech: "AMR, Sorting, Conveyor Integration", ip: 3 },
-        ]
-      }
-    ]
-  },
-  "list3": {
-    label: "LIST 3: SYSTEM INTEGRATORS",
-    color: "#1a5a3a",
-    border: "#2a8a5a",
-    clusters: [
-      {
-        id: "si-wes-software",
-        label: "SI with Proprietary WES/WCS Software",
-        icon: "💻",
-        companies: [
-          { name: "Vargo", status: "shortlist", fit: "5.00", tier: "B", cost: "$267M", products: "COFE WES, waveless processing, conveyor & sortation SI", tech: "WES Software, Systems Integration", ip: 5 },
-          { name: "Numina Group", status: "promote", fit: "4.95", tier: "B", cost: "$118M", products: "RDS WES/WCS, voice-directed workflows", tech: "WES Software, Warehouse Automation", ip: 5 },
-          { name: "Fidus Global", status: "promote", fit: "4.90", tier: "A", cost: "$70M", products: "Pontem WCS open-architecture, controls engineering", tech: "WCS Software, Controls Engineering", ip: 5 },
-          { name: "Conveyor Solutions", status: "promote", fit: "4.85", tier: "A", cost: "$32M", products: "Koz WCS/WES, custom sortation & conveyor systems", tech: "Conveyor & Sortation, WCS", ip: 4 },
-          { name: "Maveneer", status: "promote", fit: "4.85", tier: "B", cost: "$81M", products: "WxS software platform, supply chain engineering", tech: "Supply Chain Engineering, WxS Software", ip: 4 },
-          { name: "DMW&H Systems", status: "shortlist", fit: "4.45", tier: "B", cost: "$153M", products: "indaGO WCS, conveyor & sortation design", tech: "Conveyor & Sortation, WCS", ip: 4 },
-          { name: "Conveyco", status: "shortlist", fit: "4.65", tier: "B", cost: "$189M", products: "New Dawn / Horizon WES, AS/RS integration", tech: "WES, Conveyor & Sortation, AS/RS", ip: 4 },
-          { name: "DLN Integrated", status: "shortlist", fit: "4.35", tier: "A", cost: "$63M", products: "PRODirect WCS+WES, vendor-neutral controls", tech: "WCS/WES Software, Controls Design", ip: 4 },
-        ]
-      },
-      {
-        id: "si-gtp-robotics",
-        label: "SI with GTP / Robotics Focus",
-        icon: "🤝",
-        companies: [
-          { name: "BoxLogix", status: "promote", fit: "4.85", tier: "A", cost: "$39M", products: "Logix WCS, GTP automation, conveyor + robotics SI", tech: "GTP Automation, Systems Integration", ip: 4 },
-          { name: "Zion Solutions", status: "shortlist", fit: "4.55", tier: "B", cost: "$115M", products: "Full SI (software, conveyors, robotics), AMR/GTP advisory", tech: "Robotics, Software Integration, WCS/WES", ip: 4 },
-          { name: "BlueSkye Automation", status: "backup", fit: "3.95", tier: "A", cost: "$15M", products: "AMR deployment, GTP system integration", tech: "AMR Integration, GTP Systems", ip: 2 },
-        ]
-      },
-      {
-        id: "si-conveyor",
-        label: "Conveyor & Material Handling SI",
-        icon: "⚙️",
-        companies: [
-          { name: "Carter Intralogistics", status: "shortlist", fit: "4.55", tier: "B", cost: "$258M", products: "OEM MDR conveyor systems, warehouse integration", tech: "Conveyor, MDR Technology", ip: 4 },
-          { name: "Cisco Eagle", status: "promote", fit: "4.80", tier: "B", cost: "$131M", products: "Conveyor & storage systems, material handling consulting", tech: "Conveyor, Storage, Consulting", ip: 3 },
-          { name: "Conveyor Handling Co.", status: "promote", fit: "4.80", tier: "B", cost: "$215M", products: "Conveyor & sortation SI, racking, warehouse controls", tech: "Conveyor & Sortation, Racking", ip: 3 },
-          { name: "DC Integration", status: "shortlist", fit: "4.35", tier: "B", cost: "$197M", products: "Custom conveyor & sortation, carton erectors, DC SI", tech: "Conveyor, Sortation, Full DC Integration", ip: 3 },
-          { name: "Hoj Innovations", status: "backup", fit: "4.35", tier: "B", cost: "$80M", products: "Conveyor design, racking solutions, WarehouseOS WES", tech: "Conveyor, Racking, Automation", ip: 3 },
-          { name: "Silman Industries", status: "backup", fit: "4.30", tier: "B", cost: "$120M", products: "Material handling SI, conveyor, Unison WCS", tech: "Conveyor, Robotics, WCS", ip: 3 },
-        ]
-      },
-      {
-        id: "si-consulting",
-        label: "Engineering Consulting / Design SI",
-        icon: "📐",
-        companies: [
-          { name: "Gray Solutions", status: "backup", fit: "4.35", tier: "A", cost: "$37M", products: "DC design & commissioning, engineering consulting", tech: "Warehouse Automation, Consulting", ip: 2 },
-          { name: "Kasa Controls", status: "reclassify", fit: "3.40", tier: "A", cost: "$25M", products: "PLC/HMI controls, conveyor control systems", tech: "PLC/HMI Controls, Robotics Integration", ip: 2 },
-        ]
-      },
-      {
-        id: "si-validate",
-        label: "Pending Validation",
-        icon: "❓",
-        companies: [
-          { name: "Systems Automated", status: "validate", fit: "3.80", tier: "B", cost: "$175M", products: "Conveyor SI, controls engineering, WES/WCS integration", tech: "Controls, Conveyor, WES/WCS", ip: 3 },
-          { name: "Warehouse Automation", status: "validate", fit: "3.40", tier: "B", cost: "$100M", products: "Conveyor SI, WORKFLOW WCS, racking solutions", tech: "Conveyor, Racking, WCS", ip: 3 },
-          { name: "NPSG Global", status: "validate", fit: "3.20", tier: "B", cost: "$200M", products: "E-fulfillment SI, conveyor & sortation, DC commissioning", tech: "E-fulfillment Integration", ip: 2 },
-        ]
-      }
-    ]
-  },
-  "list4": {
-    label: "LIST 4: WES / SOFTWARE",
-    color: "#5a3a1a",
-    border: "#aa6a2a",
-    clusters: [
-      {
-        id: "wes-platform",
-        label: "WES / Warehouse Execution Platforms",
-        icon: "🖥️",
-        companies: [
-          { name: "GreyOrange", status: "shortlist", fit: "4.55", tier: "C", cost: "$2,026M", products: "GreyMatter AI fulfillment platform, Ranger AMR", tech: "AI Fulfillment Orchestration, WES/WCS, AMR", ip: 5 },
-          { name: "Logistiview", status: "shortlist", fit: "4.15", tier: "B", cost: "$87M", products: "Cloud WES/WMS with AR wearables & voice-directed work", tech: "Cloud WES, Augmented Reality, Voice", ip: 5 },
-          { name: "CognitOps", status: "shortlist", fit: "4.60", tier: "A", cost: "$42M", products: "ALIGN AI operations intelligence & workforce analytics", tech: "AI/ML Analytics, Operations Intelligence", ip: 5 },
-          { name: "Ascent Warehouse", status: "shortlist", fit: "4.10", tier: "A", cost: "$34M", products: "Cloud WMS, order management, fulfillment platform", tech: "Cloud WMS, Order Management", ip: 4 },
-          { name: "Top Hat Engineering", status: "shortlist", fit: "4.15", tier: "A", cost: "$44M", products: "ClarityWOS SaaS WMS/ERP orchestration, IoT analytics", tech: "SaaS WMS/WES, Orchestration, IoT", ip: 4 },
-        ]
-      },
-      {
-        id: "robotics-middleware",
-        label: "Robotics Orchestration / Middleware",
-        icon: "🔗",
-        companies: [
-          { name: "Roboteon", status: "promote", fit: "4.65", tier: "A", cost: "$46M", products: "AI robotics orchestration & WES for multi-vendor robot fleets", tech: "AI Robotics Orchestration, WES, Multi-Robot", ip: 5 },
-          { name: "SVT Robotics", status: "shortlist", fit: "4.30", tier: "B", cost: "$133M", products: "SOFTBOT cloud robotics integration middleware, API connectors", tech: "Cloud Robotics Platform, API Middleware", ip: 5 },
-        ]
-      }
-    ]
+// ─────────────────────────────────────────────
+// DATA
+// ─────────────────────────────────────────────
+
+const SCORE = {
+  FULL:     { val: 4, label: 'Full / Primary',  color: '#1a7340' },
+  STRONG:   { val: 3, label: 'Strong',           color: '#2e9e5b' },
+  MODERATE: { val: 2, label: 'Moderate',         color: '#f0a500' },
+  LIMITED:  { val: 1, label: 'Limited',          color: '#e05c00' },
+  NONE:     { val: 0, label: 'None',             color: '#b0bac6' },
+  UNKNOWN:  { val: 0, label: 'Not Assessed',     color: '#dde2ea' }, // treat as 0 for ranking
+};
+
+// companies is the canonical ordered list (will be re-sorted by ranking)
+const companiesBase = [
+  { id: 'vargo',      name: 'Vargo',       spec: 'WES / Full SI / Managed Svcs',    fitScore: 5.0  },
+  { id: 'numina',     name: 'Numina',      spec: 'WES / WCS / WMS / Voice Pick',    fitScore: 4.95 },
+  { id: 'fidus',      name: 'Fidus',       spec: 'WCS + WMS / AI Analytics',        fitScore: 4.9  },
+  { id: 'carter',     name: 'Carter',      spec: 'MDR Conveyor OEM / Controls',     fitScore: 4.9  },
+  { id: 'conveyco',   name: 'Conveyco',    spec: 'WES / GTP / Voice Pick',          fitScore: 4.85 },
+  { id: 'ciscoEagle', name: 'Cisco Eagle', spec: 'Conveyor / Controls / Safety',    fitScore: 4.8  },
+  { id: 'dcInteg',    name: 'DC Integ.',   spec: 'Conveyor / Sortation / Design',   fitScore: 4.6  },
+];
+
+let companies = companiesBase.map(c => ({ ...c, visible: true }));
+
+const rows = [
+  // BUSINESS MODEL
+  { cat: 'business', catLabel: 'Business Model', label: 'System Integration (Turnkey)',
+    scores: { vargo: 'FULL', numina: 'FULL', carter: 'FULL', conveyco: 'FULL', fidus: 'STRONG', ciscoEagle: 'FULL', dcInteg: 'FULL' } },
+  { cat: 'business', label: 'DC Consulting / Design',
+    scores: { vargo: 'FULL', numina: 'STRONG', carter: 'LIMITED', conveyco: 'STRONG', fidus: 'MODERATE', ciscoEagle: 'MODERATE', dcInteg: 'FULL' } },
+  { cat: 'business', label: 'Proprietary Software (WES/WCS/WMS)',
+    scores: { vargo: 'FULL', numina: 'FULL', carter: 'NONE', conveyco: 'FULL', fidus: 'FULL', ciscoEagle: 'NONE', dcInteg: 'NONE' } },
+  { cat: 'business', label: 'HW Manufacturing / OEM',
+    scores: { vargo: 'NONE', numina: 'NONE', carter: 'FULL', conveyco: 'NONE', fidus: 'LIMITED', ciscoEagle: 'MODERATE', dcInteg: 'NONE' } },
+  { cat: 'business', label: 'HW Resale / Distribution',
+    scores: { vargo: 'MODERATE', numina: 'MODERATE', carter: 'LIMITED', conveyco: 'MODERATE', fidus: 'NONE', ciscoEagle: 'FULL', dcInteg: 'MODERATE' } },
+  { cat: 'business', label: 'Managed / Ongoing Services',
+    scores: { vargo: 'FULL', numina: 'MODERATE', carter: 'LIMITED', conveyco: 'STRONG', fidus: 'STRONG', ciscoEagle: 'STRONG', dcInteg: 'STRONG' } },
+
+  // PICKING TECHNOLOGIES
+  { cat: 'picking', catLabel: 'Picking Technologies', label: 'Pick-to-Light (PTL)',
+    scores: { vargo: 'MODERATE', numina: 'FULL', carter: 'NONE', conveyco: 'STRONG', fidus: 'NONE', ciscoEagle: 'STRONG', dcInteg: 'MODERATE' } },
+  { cat: 'picking', label: 'Put-to-Light / Put Walls',
+    scores: { vargo: 'FULL', numina: 'STRONG', carter: 'NONE', conveyco: 'MODERATE', fidus: 'NONE', ciscoEagle: 'MODERATE', dcInteg: 'MODERATE' } },
+  { cat: 'picking', label: 'Voice Picking / RF Picking',
+    scores: { vargo: 'MODERATE', numina: 'FULL', carter: 'NONE', conveyco: 'STRONG', fidus: 'NONE', ciscoEagle: 'NONE', dcInteg: 'MODERATE' } },
+  { cat: 'picking', label: 'Cartonization Software',
+    scores: { vargo: 'MODERATE', numina: 'FULL', carter: 'NONE', conveyco: 'FULL', fidus: 'LIMITED', ciscoEagle: 'NONE', dcInteg: 'NONE' } },
+
+  // GOODS-TO-PERSON
+  { cat: 'gtp', catLabel: 'Goods-to-Person', label: 'GTP — Shuttle / Mini-Load AS/RS',
+    scores: { vargo: 'FULL', numina: 'STRONG', carter: 'NONE', conveyco: 'STRONG', fidus: 'LIMITED', ciscoEagle: 'MODERATE', dcInteg: 'NONE' } },
+  { cat: 'gtp', label: 'GTP — AutoStore / Cube Storage',
+    scores: { vargo: 'MODERATE', numina: 'MODERATE', carter: 'NONE', conveyco: 'MODERATE', fidus: 'NONE', ciscoEagle: 'NONE', dcInteg: 'NONE' } },
+  { cat: 'gtp', label: 'GTP — AMR / Mobile Robots',
+    scores: { vargo: 'FULL', numina: 'STRONG', carter: 'LIMITED', conveyco: 'STRONG', fidus: 'LIMITED', ciscoEagle: 'MODERATE', dcInteg: 'NONE' } },
+  { cat: 'gtp', label: 'GTP — VLM / Vertical Carousel',
+    scores: { vargo: 'MODERATE', numina: 'MODERATE', carter: 'NONE', conveyco: 'MODERATE', fidus: 'MODERATE', ciscoEagle: 'MODERATE', dcInteg: 'NONE' } },
+  { cat: 'gtp', label: 'GTP — Horizontal Carousel',
+    scores: { vargo: 'MODERATE', numina: 'MODERATE', carter: 'NONE', conveyco: 'MODERATE', fidus: 'MODERATE', ciscoEagle: 'MODERATE', dcInteg: 'NONE' } },
+  { cat: 'gtp', label: 'GTP — Pallet AS/RS (Unit-Load)',
+    scores: { vargo: 'LIMITED', numina: 'MODERATE', carter: 'NONE', conveyco: 'MODERATE', fidus: 'MODERATE', ciscoEagle: 'MODERATE', dcInteg: 'NONE' } },
+
+  // CONVEYOR & SORTATION
+  { cat: 'conveyor', catLabel: 'Conveyor & Sortation', label: 'Conveyor Systems (Belt / MDR / Accumulation)',
+    scores: { vargo: 'FULL', numina: 'FULL', carter: 'FULL', conveyco: 'FULL', fidus: 'STRONG', ciscoEagle: 'FULL', dcInteg: 'FULL' } },
+  { cat: 'conveyor', label: 'Sortation Systems (Cross-belt / Sliding Shoe / Tilt Tray)',
+    scores: { vargo: 'FULL', numina: 'FULL', carter: 'MODERATE', conveyco: 'FULL', fidus: 'STRONG', ciscoEagle: 'FULL', dcInteg: 'FULL' } },
+  { cat: 'conveyor', label: 'Apparel / GOH / Pouch Sorter',
+    scores: { vargo: 'STRONG', numina: 'MODERATE', carter: 'NONE', conveyco: 'FULL', fidus: 'NONE', ciscoEagle: 'NONE', dcInteg: 'NONE' } },
+
+  // ROBOTIC PICKING
+  { cat: 'robotic', catLabel: 'Robotic Picking', label: 'Robotic Picking / Depalletizing',
+    scores: { vargo: 'FULL', numina: 'MODERATE', carter: 'MODERATE', conveyco: 'MODERATE', fidus: 'NONE', ciscoEagle: 'LIMITED', dcInteg: 'LIMITED' } },
+  { cat: 'robotic', label: 'Robotic Palletizing',
+    scores: { vargo: 'FULL', numina: 'STRONG', carter: 'MODERATE', conveyco: 'MODERATE', fidus: 'NONE', ciscoEagle: 'LIMITED', dcInteg: 'LIMITED' } },
+
+  // CONTROLS & MODERNIZATION
+  { cat: 'controls', catLabel: 'Controls & Modernization', label: 'PLC / WCS / Controls Integration',
+    scores: { vargo: 'STRONG', numina: 'STRONG', carter: 'FULL', conveyco: 'MODERATE', fidus: 'FULL', ciscoEagle: 'FULL', dcInteg: 'MODERATE' } },
+  { cat: 'controls', label: 'Legacy System Modernization / Upgrades',
+    scores: { vargo: 'STRONG', numina: 'MODERATE', carter: 'LIMITED', conveyco: 'LIMITED', fidus: 'FULL', ciscoEagle: 'MODERATE', dcInteg: 'STRONG' } },
+  { cat: 'controls', label: 'System Simulation / Digital Twin',
+    scores: { vargo: 'LIMITED', numina: 'NONE', carter: 'NONE', conveyco: 'STRONG', fidus: 'STRONG', ciscoEagle: 'MODERATE', dcInteg: 'MODERATE' } },
+
+  // SOFTWARE
+  { cat: 'software', catLabel: 'Software', label: 'WES / WCS Software',
+    scores: { vargo: 'FULL', numina: 'FULL', carter: 'NONE', conveyco: 'FULL', fidus: 'FULL', ciscoEagle: 'LIMITED', dcInteg: 'NONE' } },
+  { cat: 'software', label: 'WMS Software',
+    scores: { vargo: 'NONE', numina: 'FULL', carter: 'NONE', conveyco: 'NONE', fidus: 'FULL', ciscoEagle: 'NONE', dcInteg: 'NONE' } },
+  { cat: 'software', label: 'AI / Advanced Analytics',
+    scores: { vargo: 'MODERATE', numina: 'LIMITED', carter: 'NONE', conveyco: 'LIMITED', fidus: 'STRONG', ciscoEagle: 'NONE', dcInteg: 'NONE' } },
+
+  // FIELD SERVICES & SPECIALTY
+  { cat: 'services', catLabel: 'Field Services & Specialty', label: 'Field Service & Maintenance (24/7)',
+    scores: { vargo: 'FULL', numina: 'MODERATE', carter: 'LIMITED', conveyco: 'STRONG', fidus: 'STRONG', ciscoEagle: 'FULL', dcInteg: 'STRONG' } },
+  { cat: 'services', label: 'Parts Supply & Inventory Program',
+    scores: { vargo: 'MODERATE', numina: 'LIMITED', carter: 'MODERATE', conveyco: 'FULL', fidus: 'STRONG', ciscoEagle: 'FULL', dcInteg: 'MODERATE' } },
+  { cat: 'services', label: 'Shipping / Manifest Automation',
+    scores: { vargo: 'MODERATE', numina: 'STRONG', carter: 'FULL', conveyco: 'STRONG', fidus: 'NONE', ciscoEagle: 'LIMITED', dcInteg: 'MODERATE' } },
+  { cat: 'services', label: 'Safety Automation Systems',
+    scores: { vargo: 'NONE', numina: 'NONE', carter: 'NONE', conveyco: 'NONE', fidus: 'NONE', ciscoEagle: 'FULL', dcInteg: 'NONE' } },
+  { cat: 'services', label: 'Omnichannel / Multi-Channel Fulfillment',
+    scores: { vargo: 'FULL', numina: 'MODERATE', carter: 'NONE', conveyco: 'STRONG', fidus: 'LIMITED', ciscoEagle: 'NONE', dcInteg: 'NONE' } },
+];
+
+// ─────────────────────────────────────────────
+// RANKING STATE
+// ─────────────────────────────────────────────
+
+// selectedDims: array of row labels (in selection order, max 5)
+let selectedDims = [];
+
+function getRankScore(companyId) {
+  if (selectedDims.length === 0) return null;
+  let total = 0;
+  selectedDims.forEach(label => {
+    const row = rows.find(r => r.label === label);
+    if (row) {
+      const sk = row.scores[companyId] || 'UNKNOWN';
+      total += SCORE[sk].val;
+    }
+  });
+  return total;
+}
+
+function getMaxRankScore() {
+  return selectedDims.length * 4; // max 4 per dim (FULL)
+}
+
+function applySorting() {
+  if (selectedDims.length === 0) {
+    // restore original order
+    const origOrder = companiesBase.map(c => c.id);
+    companies.sort((a, b) => origOrder.indexOf(a.id) - origOrder.indexOf(b.id));
+  } else {
+    companies.sort((a, b) => {
+      const sa = getRankScore(a.id);
+      const sb = getRankScore(b.id);
+      if (sb !== sa) return sb - sa; // descending
+      return companiesBase.findIndex(c => c.id === a.id) - companiesBase.findIndex(c => c.id === b.id);
+    });
   }
-};
+}
 
-const STATUS_COLORS = {
-  shortlist: "#27ae60",
-  promote: "#2ecc71",
-  backup: "#f39c12",
-  validate: "#e67e22",
-  reclassify: "#3498db"
-};
-const STATUS_LABELS = {
-  shortlist: "✓ SHORTLIST",
-  promote: "↑ PROMOTE",
-  backup: "◉ BACKUP",
-  validate: "? VALIDATE",
-  reclassify: "⇄ RECLASSIFY"
-};
+// ─────────────────────────────────────────────
+// HARVEY BALL SVG
+// ─────────────────────────────────────────────
+function harveyBallSVG(scoreKey, size = 22) {
+  const s = SCORE[scoreKey] || SCORE.UNKNOWN;
+  const r = size / 2;
+  const cx = r, cy = r;
+  const inner = r * 0.72;
+  const color = s.color;
+  const bg = scoreKey === 'UNKNOWN' ? '#e8ecf0' : '#fff';
+  const stroke = scoreKey === 'UNKNOWN' ? '#b0bac6' : color;
 
-function renderCanvas(filter) {
-  const canvas = document.getElementById("canvas");
-  canvas.innerHTML = "";
+  let fill = '';
+  if (scoreKey === 'FULL') {
+    fill = `<circle cx="${cx}" cy="${cy}" r="${inner}" fill="${color}"/>`;
+  } else if (scoreKey === 'STRONG') {
+    const a = inner;
+    fill = `<path d="M ${cx} ${cy} L ${cx} ${cy - a} A ${a} ${a} 0 1 1 ${cx - a} ${cy} Z" fill="${color}"/>`;
+  } else if (scoreKey === 'MODERATE') {
+    const a = inner;
+    fill = `<path d="M ${cx} ${cy} L ${cx} ${cy - a} A ${a} ${a} 0 1 1 ${cx} ${cy + a} Z" fill="${color}"/>`;
+  } else if (scoreKey === 'LIMITED') {
+    const a = inner;
+    fill = `<path d="M ${cx} ${cy} L ${cx} ${cy - a} A ${a} ${a} 0 0 1 ${cx + a} ${cy} Z" fill="${color}"/>`;
+  } else if (scoreKey === 'NONE') {
+    fill = '';
+  } else if (scoreKey === 'UNKNOWN') {
+    fill = `<text x="${cx}" y="${cy + 4}" text-anchor="middle" font-size="${r * 0.85}" fill="${stroke}" font-family="sans-serif" font-weight="600">?</text>`;
+  }
 
-  let counts = { total: 0, shortlist: 0, promote: 0, backup: 0, validate: 0 };
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="${cx}" cy="${cy}" r="${r - 1}" fill="${bg}" stroke="${stroke}" stroke-width="1.5"/>
+    ${fill}
+  </svg>`;
+}
 
-  Object.entries(DATA).forEach(([listKey, list]) => {
-    if (filter !== "all" && filter !== listKey && filter !== "shortlist" && filter !== "promote") return;
+function harveyCell(scoreKey, companyName) {
+  const s = SCORE[scoreKey] || SCORE.UNKNOWN;
+  return `<div class="hb-tooltip"><div class="hb">${harveyBallSVG(scoreKey, 22)}</div><span class="tt">${companyName}: ${s.label}</span></div>`;
+}
 
-    const section = document.createElement("div");
-    section.className = "list-section";
+// ─────────────────────────────────────────────
+// BUILD LEGEND
+// ─────────────────────────────────────────────
+function buildLegend() {
+  const items = ['FULL','STRONG','MODERATE','LIMITED','NONE','UNKNOWN'];
+  const labels = { FULL: 'Full / Primary', STRONG: 'Strong', MODERATE: 'Moderate', LIMITED: 'Limited', NONE: 'None', UNKNOWN: 'Not Assessed' };
+  items.forEach(k => {
+    const el = document.getElementById('legend-' + k.toLowerCase());
+    if (el) el.innerHTML = harveyBallSVG(k, 16) + `<span>${labels[k]}</span>`;
+  });
+}
 
-    const header = document.createElement("div");
-    header.className = "list-header";
-    header.style.background = list.color;
-    header.style.borderLeft = `4px solid ${list.border}`;
-    header.style.color = "#fff";
-    header.textContent = list.label;
-    section.appendChild(header);
+// ─────────────────────────────────────────────
+// BUILD DIMENSION CHIPS
+// ─────────────────────────────────────────────
+function buildDimChips() {
+  const section = document.getElementById('chip-section');
+  section.innerHTML = '';
 
-    const clustersDiv = document.createElement("div");
-    clustersDiv.className = "clusters";
+  // Group by category
+  const catOrder = [];
+  const catMap = {};
+  rows.forEach(r => {
+    if (!catMap[r.cat]) {
+      catMap[r.cat] = [];
+      catOrder.push(r.cat);
+    }
+    catMap[r.cat].push(r);
+  });
 
-    let hasVisibleCompany = false;
+  const catNames = {
+    business: 'Business Model', picking_methods: 'Picking Methods', gtp: 'Goods-to-Person',
+    conveyor: 'Conveyor', robotic: 'Robotic Picking', controls: 'Controls', software: 'Software',
+    services: 'Services'
+  };
 
-    list.clusters.forEach(cluster => {
-      let filteredCompanies = cluster.companies;
-      if (filter === "shortlist") filteredCompanies = cluster.companies.filter(c => c.status === "shortlist");
-      if (filter === "promote") filteredCompanies = cluster.companies.filter(c => c.status === "promote");
-      if (filteredCompanies.length === 0) return;
+  // One row per category
+  catOrder.forEach(cat => {
+    const group = document.createElement('div');
+    group.className = 'cat-chip-group';
 
-      hasVisibleCompany = true;
-      const clusterDiv = document.createElement("div");
-      clusterDiv.className = "cluster";
+    const lbl = document.createElement('span');
+    lbl.className = 'cat-chip-label';
+    lbl.textContent = catNames[cat] || cat;
+    group.appendChild(lbl);
 
-      const label = document.createElement("div");
-      label.className = "cluster-label";
-      label.innerHTML = `<span class="cluster-icon">${cluster.icon}</span> ${cluster.label}`;
-      clusterDiv.appendChild(label);
-
-      filteredCompanies.forEach(co => {
-        counts.total++;
-        if (co.status === "shortlist") counts.shortlist++;
-        if (co.status === "promote") counts.promote++;
-        if (co.status === "backup") counts.backup++;
-        if (co.status === "validate") counts.validate++;
-
-        const coDiv = document.createElement("div");
-        coDiv.className = "company";
-        coDiv.onclick = () => {
-          const panel = coDiv.querySelector(".detail-panel");
-          const isOpen = panel.classList.contains("show");
-          document.querySelectorAll(".detail-panel.show").forEach(p => p.classList.remove("show"));
-          document.querySelectorAll(".company.expanded").forEach(c => c.classList.remove("expanded"));
-          if (!isOpen) { panel.classList.add("show"); coDiv.classList.add("expanded"); }
-        };
-
-        const pip = document.createElement("div");
-        pip.className = "status-pip";
-        pip.style.background = STATUS_COLORS[co.status];
-
-        const info = document.createElement("div");
-        info.className = "company-info";
-
-        const nameEl = document.createElement("div");
-        nameEl.className = "company-name";
-        nameEl.textContent = co.name;
-
-        const tag = document.createElement("span");
-        tag.className = "company-tag";
-        tag.style.background = STATUS_COLORS[co.status] + "33";
-        tag.style.color = STATUS_COLORS[co.status];
-        tag.textContent = STATUS_LABELS[co.status];
-        nameEl.appendChild(tag);
-
-        const prodEl = document.createElement("div");
-        prodEl.className = "company-products";
-        prodEl.textContent = co.products;
-
-        const detail = document.createElement("div");
-        detail.className = "detail-panel";
-        detail.innerHTML = `
-          <div class="detail-row"><span class="detail-label">Fit Score</span><span class="detail-value">${co.fit}</span></div>
-          <div class="detail-row"><span class="detail-label">IP Score</span><span class="detail-value">${co.ip}/5</span></div>
-          <div class="detail-row"><span class="detail-label">Tier</span><span class="detail-value">${co.tier}</span></div>
-          <div class="detail-row"><span class="detail-label">Est. Cost</span><span class="detail-value">${co.cost}</span></div>
-          <div class="detail-row"><span class="detail-label">Tech Focus</span><span class="detail-value">${co.tech}</span></div>
-        `;
-
-        info.appendChild(nameEl);
-        info.appendChild(prodEl);
-        info.appendChild(detail);
-
-        coDiv.appendChild(pip);
-        coDiv.appendChild(info);
-        clusterDiv.appendChild(coDiv);
-      });
-
-      clustersDiv.appendChild(clusterDiv);
+    catMap[cat].forEach(row => {
+      const chip = document.createElement('span');
+      chip.className = 'dim-chip';
+      chip.dataset.label = row.label;
+      chip.innerHTML = row.label;
+      chip.addEventListener('click', () => toggleDim(row.label, chip));
+      group.appendChild(chip);
     });
 
-    if (hasVisibleCompany) {
-      section.appendChild(clustersDiv);
-      canvas.appendChild(section);
+    section.appendChild(group);
+  });
+}
+
+function toggleDim(label, chipEl) {
+  const idx = selectedDims.indexOf(label);
+  if (idx >= 0) {
+    // deselect
+    selectedDims.splice(idx, 1);
+  } else {
+    if (selectedDims.length >= 5) return; // max 5
+    selectedDims.push(label);
+  }
+  refreshChips();
+  refreshSorting();
+}
+
+function refreshChips() {
+  const allChips = document.querySelectorAll('.dim-chip');
+  const counter = document.getElementById('ranker-counter');
+  const clearBtn = document.getElementById('btn-clear-rank');
+
+  counter.textContent = `${selectedDims.length} / 5 selected`;
+  counter.classList.toggle('has-selection', selectedDims.length > 0);
+  clearBtn.disabled = selectedDims.length === 0;
+
+  allChips.forEach(chip => {
+    const label = chip.dataset.label;
+    const selIdx = selectedDims.indexOf(label);
+    const selected = selIdx >= 0;
+    const disabled = !selected && selectedDims.length >= 5;
+
+    chip.classList.toggle('selected', selected);
+    chip.classList.toggle('disabled', disabled);
+
+    // Add/remove order badge inside chip
+    const existing = chip.querySelector('.chip-rank-badge');
+    if (existing) existing.remove();
+    if (selected) {
+      const badge = document.createElement('span');
+      badge.className = 'chip-rank-badge';
+      badge.textContent = selIdx + 1;
+      chip.insertBefore(badge, chip.firstChild);
     }
   });
 
-  document.getElementById("stat-total").textContent = counts.total;
-  document.getElementById("stat-shortlist").textContent = counts.shortlist;
-  document.getElementById("stat-promote").textContent = counts.promote;
-  document.getElementById("stat-backup").textContent = counts.backup;
-  document.getElementById("stat-validate").textContent = counts.validate;
+  // Update rank strip
+  const strip = document.getElementById('rank-strip');
+  const stripChips = document.getElementById('rank-strip-chips');
+  strip.classList.toggle('active', selectedDims.length > 0);
+
+  if (selectedDims.length > 0) {
+    stripChips.innerHTML = selectedDims.map((d, i) =>
+      `<span class="rank-chip"><span style="opacity:.7">${i+1}.</span> ${d}</span>`
+    ).join(' ');
+  }
 }
 
-document.querySelectorAll(".filter-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    renderCanvas(btn.dataset.filter);
-  });
-});
+function clearRanking() {
+  selectedDims = [];
+  refreshChips();
+  refreshSorting();
+}
 
-renderCanvas("all");
+// ─────────────────────────────────────────────
+// BUILD COMPANY TOGGLES
+// ─────────────────────────────────────────────
+function buildToggles() {
+  const container = document.getElementById('company-toggles');
+  container.innerHTML = '';
+  companies.forEach(co => {
+    const btn = document.createElement('button');
+    btn.className = 'toggle-btn' + (co.visible ? ' active' : '');
+    btn.dataset.id = co.id;
+    btn.innerHTML = `<span class="dot"></span>${co.name}`;
+    btn.addEventListener('click', () => {
+      co.visible = !co.visible;
+      btn.classList.toggle('active', co.visible);
+      refreshColumns();
+    });
+    container.appendChild(btn);
+  });
+}
+
+// ─────────────────────────────────────────────
+// BUILD SUMMARY CARDS
+// ─────────────────────────────────────────────
+function buildSummaryCards() {
+  const bar = document.getElementById('summary-bar');
+  bar.innerHTML = '';
+  companies.forEach((co, idx) => {
+    const rankScore = getRankScore(co.id);
+    const maxRS = getMaxRankScore();
+    const pct = selectedDims.length > 0
+      ? ((rankScore / maxRS) * 100).toFixed(0)
+      : ((co.fitScore / 5.0) * 100).toFixed(0);
+
+    const card = document.createElement('div');
+    card.className = 'score-card' + (!co.visible ? ' dimmed' : '') + (idx === 0 && selectedDims.length > 0 ? ' rank-1' : '');
+    card.id = 'card-' + co.id;
+
+    let rankLine = '';
+    if (selectedDims.length > 0 && rankScore !== null) {
+      rankLine = `<div class="rank-score">Rank score: ${rankScore} / ${maxRS}</div>`;
+    }
+
+    let rankBadge = '';
+    if (selectedDims.length > 0) {
+      rankBadge = `<span class="rank-badge${idx === 0 ? ' rank-1' : ''}">#${idx + 1}</span>`;
+    }
+
+    card.innerHTML = `
+      ${rankBadge}
+      <div class="co-name">${co.name}</div>
+      <div class="co-spec">${co.spec}</div>
+      <div class="fit-score">${co.fitScore.toFixed(2)}</div>
+      <div class="fit-label">Körber Fit Score / 5.0</div>
+      ${rankLine}
+      <div class="bar-bg"><div class="bar-fill" style="width:${pct}%"></div></div>
+    `;
+    card.addEventListener('click', () => {
+      const c = companies.find(x => x.id === co.id);
+      c.visible = !c.visible;
+      const btn = document.querySelector(`.toggle-btn[data-id="${co.id}"]`);
+      if (btn) btn.classList.toggle('active', c.visible);
+      refreshColumns();
+    });
+    bar.appendChild(card);
+  });
+}
+
+// ─────────────────────────────────────────────
+// BUILD TABLE
+// ─────────────────────────────────────────────
+function buildTable() {
+  const head = document.getElementById('matrix-head');
+  const body = document.getElementById('matrix-body');
+
+  // Header
+  let thHtml = '<tr><th>Dimension</th>';
+  companies.forEach((co, idx) => {
+    const rankScore = getRankScore(co.id);
+    const dimmedClass = co.visible ? '' : ' dimmed-col';
+    const rankHL = (idx === 0 && selectedDims.length > 0) ? ' rank-highlight' : '';
+    let rankNum = selectedDims.length > 0 ? `<span class="th-rank-num">#${idx+1}</span>` : '';
+    let rsLine = (rankScore !== null) ? `<span class="th-rank-score">${rankScore} pts</span>` : '';
+    thHtml += `<th class="co-th${dimmedClass}${rankHL}" data-id="${co.id}">
+      <div class="th-inner">
+        ${rankNum}
+        <span class="th-score">${co.fitScore.toFixed(2)}</span>
+        <span class="th-name">${co.name}</span>
+        ${rsLine}
+      </div>
+    </th>`;
+  });
+  thHtml += '</tr>';
+  head.innerHTML = thHtml;
+
+  // Body
+  let lastCat = '';
+  let bodyHtml = '';
+  rows.forEach(row => {
+    if (row.cat !== lastCat) {
+      lastCat = row.cat;
+      const colspan = companies.length + 1;
+      bodyHtml += `<tr class="cat-row" data-cat="${row.cat}"><td colspan="${colspan}">${row.catLabel || row.cat}</td></tr>`;
+    }
+    const isSelectedDim = selectedDims.includes(row.label);
+    bodyHtml += `<tr class="data-row${isSelectedDim ? ' selected-dim' : ''}" data-cat="${row.cat}" data-label="${row.label}">`;
+    bodyHtml += `<td>${row.label}</td>`;
+    companies.forEach(co => {
+      const scoreKey = row.scores[co.id] || 'UNKNOWN';
+      const dimmedClass = co.visible ? '' : ' dimmed-col';
+      bodyHtml += `<td class="hb-cell co-cell${dimmedClass}" data-id="${co.id}">${harveyCell(scoreKey, co.name)}</td>`;
+    });
+    bodyHtml += '</tr>';
+  });
+  body.innerHTML = bodyHtml;
+}
+
+// ─────────────────────────────────────────────
+// REFRESH HELPERS
+// ─────────────────────────────────────────────
+function refreshColumns() {
+  companies.forEach(co => {
+    const cells = document.querySelectorAll(`.co-cell[data-id="${co.id}"], .co-th[data-id="${co.id}"]`);
+    cells.forEach(c => c.classList.toggle('dimmed-col', !co.visible));
+    const card = document.getElementById('card-' + co.id);
+    if (card) card.classList.toggle('dimmed', !co.visible);
+  });
+}
+
+function refreshSorting() {
+  applySorting();
+  // Rebuild toggles, cards, and table to reflect new order
+  buildToggles();
+  buildSummaryCards();
+  buildTable();
+  // Re-apply filter
+  filterRows();
+}
+
+function filterRows() {
+  const cat = document.getElementById('cat-filter').value;
+  document.querySelectorAll('tr.data-row').forEach(tr => {
+    tr.classList.toggle('filtered-out', cat !== 'all' && tr.dataset.cat !== cat);
+  });
+  document.querySelectorAll('tr.cat-row').forEach(tr => {
+    tr.style.display = (cat !== 'all' && tr.dataset.cat !== cat) ? 'none' : '';
+  });
+}
+
+function toggleAll(state) {
+  companies.forEach(co => {
+    co.visible = state;
+    const btn = document.querySelector(`.toggle-btn[data-id="${co.id}"]`);
+    if (btn) btn.classList.toggle('active', state);
+  });
+  refreshColumns();
+}
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+buildLegend();
+buildDimChips();
+buildToggles();
+buildSummaryCards();
+buildTable();
 </script>
 </body>
 </html>
+
