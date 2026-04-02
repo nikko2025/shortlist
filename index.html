@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>System Integrator Landscape Dashboard v4 — Körber AG</title>
+<title>System Integrator Landscape Dashboard v5 — Körber AG</title>
 <style>
   :root {
     --korber-blue: #003865;
@@ -446,7 +446,7 @@
 
 <header>
   <div>
-    <h1>System Integrator Landscape Dashboard v4 — Körber AG</h1>
+    <h1>System Integrator Landscape Dashboard v5 — Körber AG</h1>
     <div class="sub">Körber AG — M&amp;A Diligence | Confidential | April 2026 | Deep Diligence v3</div>
   </div>
   <div class="stamp">CONFIDENTIAL</div>
@@ -551,6 +551,15 @@ const companiesBase = [
   { id: 'conveyco',   name: 'Conveyco',    spec: 'WES / GTP / Voice Pick',          fitScore: 4.85 },
   { id: 'ciscoEagle', name: 'Cisco Eagle', spec: 'Conveyor / Controls / Safety',    fitScore: 4.8  },
   { id: 'dcInteg',    name: 'DC Integ.',   spec: 'Conveyor / Sortation / Design',   fitScore: 4.6  },
+  { id: 'boxlogix',    name: 'BoxLogix',      spec: 'WCS / GTP / Conveyor / Full SI',      fitScore: 4.85 },
+  { id: 'conveyorSol', name: 'Conv. Sol.',    spec: 'KOZ WES+WCS / Conveyor / GTP',        fitScore: 4.85 },
+  { id: 'maveneer',    name: 'Maveneer',      spec: 'WxS WES+WCS / Consulting / Dig Twin', fitScore: 4.85 },
+  { id: 'dln',         name: 'DLN',           spec: 'PRODirect WCS+WES / Robotics / SI',   fitScore: 4.8  },
+  { id: 'dmwh',        name: 'DMW&H',         spec: 'indaGO WES+Shiraz WCS / AS-RS',       fitScore: 4.8  },
+  { id: 'zion',        name: 'Zion Sol.',     spec: 'Conveyor / Sortation / SI',           fitScore: 4.2  },
+  { id: 'chc',         name: 'CHC',           spec: 'CHCCS WCS+WES / Conveyor / SI',       fitScore: 3.5  },
+  { id: 'hoj',         name: 'Hoj Innov.',    spec: 'WarehouseOS WES / AMR / Racking',     fitScore: 4.35 },
+  { id: 'silman',      name: 'Silman',        spec: 'Unison WCS / Conveyor / Construction', fitScore: 4.3  },
 ];
 
 let companies = companiesBase.map(c => ({ ...c, visible: true }));
@@ -558,83 +567,83 @@ let companies = companiesBase.map(c => ({ ...c, visible: true }));
 const rows = [
   // BUSINESS MODEL
   { cat: 'business', catLabel: 'Business Model', label: 'System Integration (Turnkey)',
-    scores: { vargo: 'FULL', numina: 'FULL', carter: 'FULL', conveyco: 'FULL', fidus: 'STRONG', ciscoEagle: 'FULL', dcInteg: 'FULL' } },
+    scores: { vargo: 'FULL', numina: 'FULL', carter: 'FULL', conveyco: 'FULL', fidus: 'STRONG', ciscoEagle: 'FULL', dcInteg: 'FULL', boxlogix: 'FULL', conveyorSol: 'FULL', maveneer: 'STRONG', dln: 'FULL', dmwh: 'FULL', zion: 'FULL', chc: 'FULL', hoj: 'FULL', silman: 'FULL' } },
   { cat: 'business', label: 'DC Consulting / Design',
-    scores: { vargo: 'FULL', numina: 'STRONG', carter: 'LIMITED', conveyco: 'STRONG', fidus: 'MODERATE', ciscoEagle: 'MODERATE', dcInteg: 'FULL' } },
+    scores: { vargo: 'FULL', numina: 'STRONG', carter: 'LIMITED', conveyco: 'STRONG', fidus: 'MODERATE', ciscoEagle: 'MODERATE', dcInteg: 'FULL', boxlogix: 'MODERATE', conveyorSol: 'STRONG', maveneer: 'FULL', dln: 'FULL', dmwh: 'STRONG', zion: 'MODERATE', chc: 'MODERATE', hoj: 'STRONG', silman: 'MODERATE' } },
   { cat: 'business', label: 'Proprietary Software (WES/WCS/WMS)',
-    scores: { vargo: 'FULL', numina: 'FULL', carter: 'NONE', conveyco: 'FULL', fidus: 'FULL', ciscoEagle: 'NONE', dcInteg: 'NONE' } },
+    scores: { vargo: 'FULL', numina: 'FULL', carter: 'NONE', conveyco: 'FULL', fidus: 'FULL', ciscoEagle: 'NONE', dcInteg: 'NONE', boxlogix: 'FULL', conveyorSol: 'FULL', maveneer: 'FULL', dln: 'FULL', dmwh: 'FULL', zion: 'UNKNOWN', chc: 'FULL', hoj: 'STRONG', silman: 'LIMITED' } },
   { cat: 'business', label: 'HW Manufacturing / OEM',
-    scores: { vargo: 'NONE', numina: 'NONE', carter: 'FULL', conveyco: 'NONE', fidus: 'LIMITED', ciscoEagle: 'MODERATE', dcInteg: 'NONE' } },
+    scores: { vargo: 'NONE', numina: 'NONE', carter: 'FULL', conveyco: 'NONE', fidus: 'LIMITED', ciscoEagle: 'MODERATE', dcInteg: 'NONE', boxlogix: 'NONE', conveyorSol: 'NONE', maveneer: 'NONE', dln: 'MODERATE', dmwh: 'NONE', zion: 'NONE', chc: 'NONE', hoj: 'NONE', silman: 'NONE' } },
   { cat: 'business', label: 'HW Resale / Distribution',
-    scores: { vargo: 'MODERATE', numina: 'MODERATE', carter: 'LIMITED', conveyco: 'MODERATE', fidus: 'NONE', ciscoEagle: 'FULL', dcInteg: 'MODERATE' } },
+    scores: { vargo: 'MODERATE', numina: 'MODERATE', carter: 'LIMITED', conveyco: 'MODERATE', fidus: 'NONE', ciscoEagle: 'FULL', dcInteg: 'MODERATE', boxlogix: 'STRONG', conveyorSol: 'MODERATE', maveneer: 'NONE', dln: 'MODERATE', dmwh: 'MODERATE', zion: 'MODERATE', chc: 'MODERATE', hoj: 'MODERATE', silman: 'MODERATE' } },
   { cat: 'business', label: 'Managed / Ongoing Services',
-    scores: { vargo: 'FULL', numina: 'MODERATE', carter: 'LIMITED', conveyco: 'STRONG', fidus: 'STRONG', ciscoEagle: 'STRONG', dcInteg: 'STRONG' } },
+    scores: { vargo: 'FULL', numina: 'MODERATE', carter: 'LIMITED', conveyco: 'STRONG', fidus: 'STRONG', ciscoEagle: 'STRONG', dcInteg: 'STRONG', boxlogix: 'MODERATE', conveyorSol: 'STRONG', maveneer: 'MODERATE', dln: 'MODERATE', dmwh: 'STRONG', zion: 'MODERATE', chc: 'MODERATE', hoj: 'MODERATE', silman: 'STRONG' } },
 
   // PICKING TECHNOLOGIES
   { cat: 'picking', catLabel: 'Picking Technologies', label: 'Pick-to-Light (PTL)',
-    scores: { vargo: 'MODERATE', numina: 'FULL', carter: 'NONE', conveyco: 'STRONG', fidus: 'NONE', ciscoEagle: 'STRONG', dcInteg: 'MODERATE' } },
+    scores: { vargo: 'MODERATE', numina: 'FULL', carter: 'NONE', conveyco: 'STRONG', fidus: 'NONE', ciscoEagle: 'STRONG', dcInteg: 'MODERATE', boxlogix: 'UNKNOWN', conveyorSol: 'MODERATE', maveneer: 'MODERATE', dln: 'MODERATE', dmwh: 'MODERATE', zion: 'UNKNOWN', chc: 'MODERATE', hoj: 'MODERATE', silman: 'NONE' } },
   { cat: 'picking', label: 'Put-to-Light / Put Walls',
-    scores: { vargo: 'FULL', numina: 'STRONG', carter: 'NONE', conveyco: 'MODERATE', fidus: 'NONE', ciscoEagle: 'MODERATE', dcInteg: 'MODERATE' } },
+    scores: { vargo: 'FULL', numina: 'STRONG', carter: 'NONE', conveyco: 'MODERATE', fidus: 'NONE', ciscoEagle: 'MODERATE', dcInteg: 'MODERATE', boxlogix: 'UNKNOWN', conveyorSol: 'MODERATE', maveneer: 'MODERATE', dln: 'MODERATE', dmwh: 'MODERATE', zion: 'UNKNOWN', chc: 'MODERATE', hoj: 'MODERATE', silman: 'NONE' } },
   { cat: 'picking', label: 'Voice Picking / RF Picking',
-    scores: { vargo: 'MODERATE', numina: 'FULL', carter: 'NONE', conveyco: 'STRONG', fidus: 'NONE', ciscoEagle: 'NONE', dcInteg: 'MODERATE' } },
+    scores: { vargo: 'MODERATE', numina: 'FULL', carter: 'NONE', conveyco: 'STRONG', fidus: 'NONE', ciscoEagle: 'NONE', dcInteg: 'MODERATE', boxlogix: 'UNKNOWN', conveyorSol: 'MODERATE', maveneer: 'MODERATE', dln: 'MODERATE', dmwh: 'MODERATE', zion: 'UNKNOWN', chc: 'MODERATE', hoj: 'MODERATE', silman: 'NONE' } },
   { cat: 'picking', label: 'Cartonization Software',
-    scores: { vargo: 'MODERATE', numina: 'FULL', carter: 'NONE', conveyco: 'FULL', fidus: 'LIMITED', ciscoEagle: 'NONE', dcInteg: 'NONE' } },
+    scores: { vargo: 'MODERATE', numina: 'FULL', carter: 'NONE', conveyco: 'FULL', fidus: 'LIMITED', ciscoEagle: 'NONE', dcInteg: 'NONE', boxlogix: 'NONE', conveyorSol: 'LIMITED', maveneer: 'LIMITED', dln: 'MODERATE', dmwh: 'LIMITED', zion: 'UNKNOWN', chc: 'NONE', hoj: 'NONE', silman: 'NONE' } },
 
   // GOODS-TO-PERSON
   { cat: 'gtp', catLabel: 'Goods-to-Person', label: 'GTP — Shuttle / Mini-Load AS/RS',
-    scores: { vargo: 'FULL', numina: 'STRONG', carter: 'NONE', conveyco: 'STRONG', fidus: 'LIMITED', ciscoEagle: 'MODERATE', dcInteg: 'NONE' } },
+    scores: { vargo: 'FULL', numina: 'STRONG', carter: 'NONE', conveyco: 'STRONG', fidus: 'LIMITED', ciscoEagle: 'MODERATE', dcInteg: 'NONE', boxlogix: 'STRONG', conveyorSol: 'STRONG', maveneer: 'MODERATE', dln: 'STRONG', dmwh: 'FULL', zion: 'MODERATE', chc: 'MODERATE', hoj: 'MODERATE', silman: 'MODERATE' } },
   { cat: 'gtp', label: 'GTP — AutoStore / Cube Storage',
-    scores: { vargo: 'MODERATE', numina: 'MODERATE', carter: 'NONE', conveyco: 'MODERATE', fidus: 'NONE', ciscoEagle: 'NONE', dcInteg: 'NONE' } },
+    scores: { vargo: 'MODERATE', numina: 'MODERATE', carter: 'NONE', conveyco: 'MODERATE', fidus: 'NONE', ciscoEagle: 'NONE', dcInteg: 'NONE', boxlogix: 'NONE', conveyorSol: 'MODERATE', maveneer: 'MODERATE', dln: 'MODERATE', dmwh: 'NONE', zion: 'NONE', chc: 'NONE', hoj: 'NONE', silman: 'NONE' } },
   { cat: 'gtp', label: 'GTP — AMR / Mobile Robots',
-    scores: { vargo: 'FULL', numina: 'STRONG', carter: 'LIMITED', conveyco: 'STRONG', fidus: 'LIMITED', ciscoEagle: 'MODERATE', dcInteg: 'NONE' } },
+    scores: { vargo: 'FULL', numina: 'STRONG', carter: 'LIMITED', conveyco: 'STRONG', fidus: 'LIMITED', ciscoEagle: 'MODERATE', dcInteg: 'NONE', boxlogix: 'MODERATE', conveyorSol: 'STRONG', maveneer: 'STRONG', dln: 'STRONG', dmwh: 'STRONG', zion: 'MODERATE', chc: 'LIMITED', hoj: 'FULL', silman: 'MODERATE' } },
   { cat: 'gtp', label: 'GTP — VLM / Vertical Carousel',
-    scores: { vargo: 'MODERATE', numina: 'MODERATE', carter: 'NONE', conveyco: 'MODERATE', fidus: 'MODERATE', ciscoEagle: 'MODERATE', dcInteg: 'NONE' } },
+    scores: { vargo: 'MODERATE', numina: 'MODERATE', carter: 'NONE', conveyco: 'MODERATE', fidus: 'MODERATE', ciscoEagle: 'MODERATE', dcInteg: 'NONE', boxlogix: 'UNKNOWN', conveyorSol: 'MODERATE', maveneer: 'MODERATE', dln: 'MODERATE', dmwh: 'MODERATE', zion: 'UNKNOWN', chc: 'MODERATE', hoj: 'MODERATE', silman: 'NONE' } },
   { cat: 'gtp', label: 'GTP — Horizontal Carousel',
-    scores: { vargo: 'MODERATE', numina: 'MODERATE', carter: 'NONE', conveyco: 'MODERATE', fidus: 'MODERATE', ciscoEagle: 'MODERATE', dcInteg: 'NONE' } },
+    scores: { vargo: 'MODERATE', numina: 'MODERATE', carter: 'NONE', conveyco: 'MODERATE', fidus: 'MODERATE', ciscoEagle: 'MODERATE', dcInteg: 'NONE', boxlogix: 'UNKNOWN', conveyorSol: 'MODERATE', maveneer: 'MODERATE', dln: 'MODERATE', dmwh: 'MODERATE', zion: 'UNKNOWN', chc: 'MODERATE', hoj: 'MODERATE', silman: 'NONE' } },
   { cat: 'gtp', label: 'GTP — Pallet AS/RS (Unit-Load)',
-    scores: { vargo: 'LIMITED', numina: 'MODERATE', carter: 'NONE', conveyco: 'MODERATE', fidus: 'MODERATE', ciscoEagle: 'MODERATE', dcInteg: 'NONE' } },
+    scores: { vargo: 'LIMITED', numina: 'MODERATE', carter: 'NONE', conveyco: 'MODERATE', fidus: 'MODERATE', ciscoEagle: 'MODERATE', dcInteg: 'NONE', boxlogix: 'MODERATE', conveyorSol: 'MODERATE', maveneer: 'MODERATE', dln: 'MODERATE', dmwh: 'STRONG', zion: 'MODERATE', chc: 'NONE', hoj: 'MODERATE', silman: 'MODERATE' } },
 
   // CONVEYOR & SORTATION
   { cat: 'conveyor', catLabel: 'Conveyor & Sortation', label: 'Conveyor Systems (Belt / MDR / Accumulation)',
-    scores: { vargo: 'FULL', numina: 'FULL', carter: 'FULL', conveyco: 'FULL', fidus: 'STRONG', ciscoEagle: 'FULL', dcInteg: 'FULL' } },
+    scores: { vargo: 'FULL', numina: 'FULL', carter: 'FULL', conveyco: 'FULL', fidus: 'STRONG', ciscoEagle: 'FULL', dcInteg: 'FULL', boxlogix: 'FULL', conveyorSol: 'FULL', maveneer: 'STRONG', dln: 'FULL', dmwh: 'FULL', zion: 'STRONG', chc: 'FULL', hoj: 'STRONG', silman: 'FULL' } },
   { cat: 'conveyor', label: 'Sortation Systems (Cross-belt / Sliding Shoe / Tilt Tray)',
-    scores: { vargo: 'FULL', numina: 'FULL', carter: 'MODERATE', conveyco: 'FULL', fidus: 'STRONG', ciscoEagle: 'FULL', dcInteg: 'FULL' } },
+    scores: { vargo: 'FULL', numina: 'FULL', carter: 'MODERATE', conveyco: 'FULL', fidus: 'STRONG', ciscoEagle: 'FULL', dcInteg: 'FULL', boxlogix: 'MODERATE', conveyorSol: 'FULL', maveneer: 'MODERATE', dln: 'STRONG', dmwh: 'FULL', zion: 'STRONG', chc: 'STRONG', hoj: 'MODERATE', silman: 'MODERATE' } },
   { cat: 'conveyor', label: 'Apparel / GOH / Pouch Sorter',
-    scores: { vargo: 'STRONG', numina: 'MODERATE', carter: 'NONE', conveyco: 'FULL', fidus: 'NONE', ciscoEagle: 'NONE', dcInteg: 'NONE' } },
+    scores: { vargo: 'STRONG', numina: 'MODERATE', carter: 'NONE', conveyco: 'FULL', fidus: 'NONE', ciscoEagle: 'NONE', dcInteg: 'NONE', boxlogix: 'NONE', conveyorSol: 'NONE', maveneer: 'NONE', dln: 'NONE', dmwh: 'NONE', zion: 'NONE', chc: 'NONE', hoj: 'NONE', silman: 'NONE' } },
 
   // ROBOTIC PICKING
   { cat: 'robotic', catLabel: 'Robotic Picking', label: 'Robotic Picking / Depalletizing',
-    scores: { vargo: 'FULL', numina: 'MODERATE', carter: 'MODERATE', conveyco: 'MODERATE', fidus: 'NONE', ciscoEagle: 'LIMITED', dcInteg: 'LIMITED' } },
+    scores: { vargo: 'FULL', numina: 'MODERATE', carter: 'MODERATE', conveyco: 'MODERATE', fidus: 'NONE', ciscoEagle: 'LIMITED', dcInteg: 'LIMITED', boxlogix: 'MODERATE', conveyorSol: 'MODERATE', maveneer: 'MODERATE', dln: 'STRONG', dmwh: 'STRONG', zion: 'UNKNOWN', chc: 'NONE', hoj: 'MODERATE', silman: 'LIMITED' } },
   { cat: 'robotic', label: 'Robotic Palletizing',
-    scores: { vargo: 'FULL', numina: 'STRONG', carter: 'MODERATE', conveyco: 'MODERATE', fidus: 'NONE', ciscoEagle: 'LIMITED', dcInteg: 'LIMITED' } },
+    scores: { vargo: 'FULL', numina: 'STRONG', carter: 'MODERATE', conveyco: 'MODERATE', fidus: 'NONE', ciscoEagle: 'LIMITED', dcInteg: 'LIMITED', boxlogix: 'MODERATE', conveyorSol: 'MODERATE', maveneer: 'MODERATE', dln: 'STRONG', dmwh: 'STRONG', zion: 'UNKNOWN', chc: 'NONE', hoj: 'MODERATE', silman: 'LIMITED' } },
 
   // CONTROLS & MODERNIZATION
   { cat: 'controls', catLabel: 'Controls & Modernization', label: 'PLC / WCS / Controls Integration',
-    scores: { vargo: 'STRONG', numina: 'STRONG', carter: 'FULL', conveyco: 'MODERATE', fidus: 'FULL', ciscoEagle: 'FULL', dcInteg: 'MODERATE' } },
+    scores: { vargo: 'STRONG', numina: 'STRONG', carter: 'FULL', conveyco: 'MODERATE', fidus: 'FULL', ciscoEagle: 'FULL', dcInteg: 'MODERATE', boxlogix: 'FULL', conveyorSol: 'FULL', maveneer: 'STRONG', dln: 'FULL', dmwh: 'FULL', zion: 'MODERATE', chc: 'STRONG', hoj: 'STRONG', silman: 'STRONG' } },
   { cat: 'controls', label: 'Legacy System Modernization / Upgrades',
-    scores: { vargo: 'STRONG', numina: 'MODERATE', carter: 'LIMITED', conveyco: 'LIMITED', fidus: 'FULL', ciscoEagle: 'MODERATE', dcInteg: 'STRONG' } },
+    scores: { vargo: 'STRONG', numina: 'MODERATE', carter: 'LIMITED', conveyco: 'LIMITED', fidus: 'FULL', ciscoEagle: 'MODERATE', dcInteg: 'STRONG', boxlogix: 'MODERATE', conveyorSol: 'MODERATE', maveneer: 'MODERATE', dln: 'STRONG', dmwh: 'MODERATE', zion: 'MODERATE', chc: 'STRONG', hoj: 'MODERATE', silman: 'STRONG' } },
   { cat: 'controls', label: 'System Simulation / Digital Twin',
-    scores: { vargo: 'LIMITED', numina: 'NONE', carter: 'NONE', conveyco: 'STRONG', fidus: 'STRONG', ciscoEagle: 'MODERATE', dcInteg: 'MODERATE' } },
+    scores: { vargo: 'LIMITED', numina: 'NONE', carter: 'NONE', conveyco: 'STRONG', fidus: 'STRONG', ciscoEagle: 'MODERATE', dcInteg: 'MODERATE', boxlogix: 'NONE', conveyorSol: 'NONE', maveneer: 'FULL', dln: 'MODERATE', dmwh: 'LIMITED', zion: 'UNKNOWN', chc: 'NONE', hoj: 'NONE', silman: 'NONE' } },
 
   // SOFTWARE
   { cat: 'software', catLabel: 'Software', label: 'WES / WCS Software',
-    scores: { vargo: 'FULL', numina: 'FULL', carter: 'NONE', conveyco: 'FULL', fidus: 'FULL', ciscoEagle: 'LIMITED', dcInteg: 'NONE' } },
+    scores: { vargo: 'FULL', numina: 'FULL', carter: 'NONE', conveyco: 'FULL', fidus: 'FULL', ciscoEagle: 'LIMITED', dcInteg: 'NONE', boxlogix: 'FULL', conveyorSol: 'FULL', maveneer: 'FULL', dln: 'FULL', dmwh: 'FULL', zion: 'UNKNOWN', chc: 'FULL', hoj: 'STRONG', silman: 'LIMITED' } },
   { cat: 'software', label: 'WMS Software',
-    scores: { vargo: 'NONE', numina: 'FULL', carter: 'NONE', conveyco: 'NONE', fidus: 'FULL', ciscoEagle: 'NONE', dcInteg: 'NONE' } },
+    scores: { vargo: 'NONE', numina: 'FULL', carter: 'NONE', conveyco: 'NONE', fidus: 'FULL', ciscoEagle: 'NONE', dcInteg: 'NONE', boxlogix: 'NONE', conveyorSol: 'MODERATE', maveneer: 'STRONG', dln: 'MODERATE', dmwh: 'NONE', zion: 'UNKNOWN', chc: 'NONE', hoj: 'MODERATE', silman: 'NONE' } },
   { cat: 'software', label: 'AI / Advanced Analytics',
-    scores: { vargo: 'MODERATE', numina: 'LIMITED', carter: 'NONE', conveyco: 'LIMITED', fidus: 'STRONG', ciscoEagle: 'NONE', dcInteg: 'NONE' } },
+    scores: { vargo: 'MODERATE', numina: 'LIMITED', carter: 'NONE', conveyco: 'LIMITED', fidus: 'STRONG', ciscoEagle: 'NONE', dcInteg: 'NONE', boxlogix: 'NONE', conveyorSol: 'LIMITED', maveneer: 'MODERATE', dln: 'MODERATE', dmwh: 'LIMITED', zion: 'UNKNOWN', chc: 'NONE', hoj: 'NONE', silman: 'NONE' } },
 
   // FIELD SERVICES & SPECIALTY
   { cat: 'services', catLabel: 'Field Services & Specialty', label: 'Field Service & Maintenance (24/7)',
-    scores: { vargo: 'FULL', numina: 'MODERATE', carter: 'LIMITED', conveyco: 'STRONG', fidus: 'STRONG', ciscoEagle: 'FULL', dcInteg: 'STRONG' } },
+    scores: { vargo: 'FULL', numina: 'MODERATE', carter: 'LIMITED', conveyco: 'STRONG', fidus: 'STRONG', ciscoEagle: 'FULL', dcInteg: 'STRONG', boxlogix: 'MODERATE', conveyorSol: 'STRONG', maveneer: 'LIMITED', dln: 'MODERATE', dmwh: 'STRONG', zion: 'MODERATE', chc: 'STRONG', hoj: 'MODERATE', silman: 'FULL' } },
   { cat: 'services', label: 'Parts Supply & Inventory Program',
-    scores: { vargo: 'MODERATE', numina: 'LIMITED', carter: 'MODERATE', conveyco: 'FULL', fidus: 'STRONG', ciscoEagle: 'FULL', dcInteg: 'MODERATE' } },
+    scores: { vargo: 'MODERATE', numina: 'LIMITED', carter: 'MODERATE', conveyco: 'FULL', fidus: 'STRONG', ciscoEagle: 'FULL', dcInteg: 'MODERATE', boxlogix: 'STRONG', conveyorSol: 'STRONG', maveneer: 'NONE', dln: 'MODERATE', dmwh: 'MODERATE', zion: 'UNKNOWN', chc: 'MODERATE', hoj: 'MODERATE', silman: 'MODERATE' } },
   { cat: 'services', label: 'Shipping / Manifest Automation',
-    scores: { vargo: 'MODERATE', numina: 'STRONG', carter: 'FULL', conveyco: 'STRONG', fidus: 'NONE', ciscoEagle: 'LIMITED', dcInteg: 'MODERATE' } },
+    scores: { vargo: 'MODERATE', numina: 'STRONG', carter: 'FULL', conveyco: 'STRONG', fidus: 'NONE', ciscoEagle: 'LIMITED', dcInteg: 'MODERATE', boxlogix: 'MODERATE', conveyorSol: 'MODERATE', maveneer: 'NONE', dln: 'MODERATE', dmwh: 'STRONG', zion: 'UNKNOWN', chc: 'MODERATE', hoj: 'NONE', silman: 'NONE' } },
   { cat: 'services', label: 'Safety Automation Systems',
-    scores: { vargo: 'NONE', numina: 'NONE', carter: 'NONE', conveyco: 'NONE', fidus: 'NONE', ciscoEagle: 'FULL', dcInteg: 'NONE' } },
+    scores: { vargo: 'NONE', numina: 'NONE', carter: 'NONE', conveyco: 'NONE', fidus: 'NONE', ciscoEagle: 'FULL', dcInteg: 'NONE', boxlogix: 'NONE', conveyorSol: 'NONE', maveneer: 'NONE', dln: 'NONE', dmwh: 'NONE', zion: 'UNKNOWN', chc: 'NONE', hoj: 'NONE', silman: 'MODERATE' } },
   { cat: 'services', label: 'Omnichannel / Multi-Channel Fulfillment',
-    scores: { vargo: 'FULL', numina: 'MODERATE', carter: 'NONE', conveyco: 'STRONG', fidus: 'LIMITED', ciscoEagle: 'NONE', dcInteg: 'NONE' } },
+    scores: { vargo: 'FULL', numina: 'MODERATE', carter: 'NONE', conveyco: 'STRONG', fidus: 'LIMITED', ciscoEagle: 'NONE', dcInteg: 'NONE', boxlogix: 'MODERATE', conveyorSol: 'MODERATE', maveneer: 'MODERATE', dln: 'MODERATE', dmwh: 'STRONG', zion: 'UNKNOWN', chc: 'MODERATE', hoj: 'MODERATE', silman: 'NONE' } },
 ];
 
 // ─────────────────────────────────────────────
@@ -1004,4 +1013,3 @@ buildTable();
 </script>
 </body>
 </html>
-
